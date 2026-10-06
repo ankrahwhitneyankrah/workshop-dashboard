@@ -27,12 +27,18 @@ daten/projekte.xlsx ──► bericht.py (prüfen + rechnen) ──► dashboard
 
 ## Start (einmalig)
 
-0. Auf GitHub im Vorlage-Repository **Use this template → Create a new repository** wählen, als Sichtbarkeit **Private**. Dann in VS Code **Quellcodeverwaltung → Repository klonen** und euer neues Repository auswählen.
-   Beim ersten Mal im Terminal Namen und E-Mail für Git hinterlegen:
-   `git config --global user.name "Vorname Nachname"` und `git config --global user.email "eure-github-adresse"`
-1. Diesen Ordner in VS Code öffnen (**Datei → Ordner öffnen**), falls er nicht schon offen ist.
-2. **Terminal → Aufgabe ausführen → „Pakete installieren (einmalig)“**.
-3. **Terminal → Aufgabe ausführen → „2 · Alles prüfen (Tests)“**. Erwartung: alles grün, `passed`.
+> **Tipp:** Fast alles in VS Code erreicht ihr über die **Befehlspalette** `Strg + Shift + P` und den Namen des Befehls. Das funktioniert unabhängig davon, wie VS Code bei euch aussieht.
+
+0. Auf GitHub im Vorlage-Repository **Use this template → Create a new repository** wählen:
+   - Sichtbarkeit **Private**
+   - Häkchen bei **Include all branches** setzen (sonst fehlt die Musterlösung)
+1. In VS Code `Strg + Shift + P` → `Git: Clone` → euer neues Repository wählen. Als Speicherort einen Ordner **außerhalb von OneDrive** wählen, z. B. `C:SERS<KüRZEL>PROJEKTE`. OneDrive sperrt beim Synchronisieren Dateien, und Git kann dann nicht schreiben.
+2. Beim ersten Mal im Terminal Namen und **anonyme** GitHub-E-Mail hinterlegen. Ihr findet sie auf GitHub unter Settings → Emails → „Keep my email addresses private“. Sie sieht aus wie `12345678+name@users.noreply.github.com`.
+   `git config --global user.name "Vorname Nachname"`
+   `git config --global user.email "12345678+name@users.noreply.github.com"`
+3. `Strg + Shift + P` → `Python: Select Interpreter` → das normale Python wählen (z. B. `Python 3.13`, **nicht** eine `.venv` aus einem anderen Projekt).
+4. **Terminal → Aufgabe ausführen → „Pakete installieren (einmalig)“**.
+5. **Terminal → Aufgabe ausführen → „2 · Alles prüfen (Tests)“**. Erwartung: alles grün, `passed`.
 
 ## Stufe 1: Ein Dashboard bauen
 
@@ -41,16 +47,21 @@ daten/projekte.xlsx ──► bericht.py (prüfen + rechnen) ──► dashboard
    **Sollwert:** 8 Projekte · 670 h Plan · 620 h Ist · −50 h Abweichung · 93 % Ausschöpfung
    Ausprobieren: Filter nach Bereich und Status, auf einen Bereich im rechten Diagramm klicken, mit der Maus über die Balken fahren, Tabelle sortieren.
    **Kontrolle:** Bereich „Finanzen“ → 2 Projekte · 130 h Plan · 150 h Ist · 115 %
-3. Im Copilot-Chat (Agent-Modus) `/kennzahl-ergaenzen` eingeben:
-   - Name: *Projekte über Plan*
-   - Regel: *Anzahl Projekte mit Ist_Stunden größer als Plan_Stunden*
+3. Eigenen Branch anlegen: `Strg + Shift + P` → `Git: Create Branch` → `uebung-kennzahl`.
+4. Im Copilot-Chat den Modus **Agent** wählen und `/kennzahl-ergaenzen` eingeben. Copilot fragt drei Angaben nacheinander ab:
+   - Name: *Über Plan*
+   - Regel: *Anzahl Projekte, bei denen Ist_Stunden größer als Plan_Stunden ist*
    - Sollwert: **2**
-4. In der Ansicht **Quellcodeverwaltung** (linke Leiste) prüfen, was Copilot geändert hat. Stimmt der Wert im Dashboard?
-5. Änderung mit einer verständlichen Nachricht **committen**.
+
+   Wenn Copilot nach Erlaubnis fragt (Dateien ändern, Tests ausführen), bestätigen. Bietet Copilot am Ende an, die Kennzahl auch in die Präsentation einzubauen: **Nein**, das kommt in Stufe 3.
+5. Prüfen: neue Kachel „Über Plan“ = **2**, auch gefiltert nach „Finanzen“ = **2**. Erst dann im Chat **Keep** klicken (bei falschem Ergebnis **Undo**).
+6. In der **Quellcodeverwaltung** (linke Leiste) ansehen, was geändert wurde, eine verständliche Nachricht eintragen und **Commit** klicken.
+
+   Jede Person bekommt von Copilot eine etwas andere Lösung. Das ist in Ordnung, entscheidend ist der Sollwert.
 
 ## Stufe 2: Automatisch aktualisieren
 
-1. **Synchronisieren** bzw. **Push**: Die Änderungen gehen zu GitHub.
+1. **Branch veröffentlichen** bzw. **Synchronisieren**: Die Änderungen gehen zu GitHub. Optional als Pull Request: auf GitHub **Compare & pull request**, Prüfung abwarten, dann **Merge** oder in der Übung **Close pull request**.
 2. Auf GitHub den Tab **Actions** öffnen und zusehen, wie der Bericht gebaut wird. Danach unter **Artifacts** „bericht“ herunterladen.
 3. Neuer Datenstand: Auf GitHub den Ordner `daten` öffnen, **Add file → Upload files** wählen und die Datei `beispieldaten/stand_2_september/projekte.xlsx` von eurem Rechner hineinziehen. Sie ersetzt die alte Datei. **Commit changes** klicken. Ein neuer Lauf startet von selbst.
    **Sollwert:** 9 Projekte · 700 h Plan · 670 h Ist · −30 h Abweichung · 96 % Ausschöpfung · 4 Projekte über Plan
@@ -61,7 +72,7 @@ daten/projekte.xlsx ──► bericht.py (prüfen + rechnen) ──► dashboard
 
 1. **Terminal → Aufgabe ausführen → „3 · Präsentation erstellen“** und `ausgabe/praesentation.pptx` öffnen.
    Mit eigener Firmenvorlage: Ordner `vorlage` anlegen, die Vorlage als `.pptx` hineinlegen und erneut erstellen. Schrift, Farben, Fußzeile und Titelbild kommen dann aus der Vorlage. Der Ordner wird nie zu GitHub hochgeladen, die Version aus GitHub Actions ist deshalb immer im neutralen Design.
-2. Im Copilot-Chat `/folie-ergaenzen` eingeben: *Tabelle der Projekte über Plan*.
+2. Im Copilot-Chat `/folie-ergaenzen` eingeben: *Tabelle der Projekte über Plan*. Ergebnis prüfen, dann **Keep**.
 3. In `.github/workflows/bericht.yml` den Schritt „Präsentation erstellen“ einkommentieren (oder Copilot darum bitten).
 4. Committen und pushen. GitHub liefert jetzt Dashboard **und** PowerPoint.
 5. Zahlen auf den Folien mit dem Dashboard vergleichen. Die Aussage auf der letzten Folie formuliert ihr selbst.
