@@ -1,0 +1,31 @@
+{
+  "version": "2.0.0",
+  "tasks": [
+    {
+      "label": "1 · Dashboard erstellen",
+      "type": "shell",
+      "command": "python dashboard.py",
+      "problemMatcher": [],
+      "group": { "kind": "build", "isDefault": true }
+    },
+    {
+      "label": "2 · Alles prüfen (Tests)",
+      "type": "shell",
+      "command": "python -m pytest -v",
+      "problemMatcher": [],
+      "group": { "kind": "test", "isDefault": true }
+    },
+    {
+      "label": "3 · Präsentation erstellen",
+      "type": "shell",
+      "command": "python praesentation.py",
+      "problemMatcher": []
+    },
+    {
+      "label": "Pakete installieren (einmalig)",
+      "type": "shell",
+      "command": "python -m pip install -r requirements.txt",
+      "problemMatcher": []
+    }
+  ]
+}

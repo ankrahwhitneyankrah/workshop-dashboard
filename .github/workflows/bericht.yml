@@ -1,0 +1,51 @@
+# Stufe 2: Bei jeder Änderung baut GitHub den Bericht automatisch.
+# Ergebnis: im Tab "Actions" den Lauf öffnen, unten unter "Artifacts" auf "bericht" klicken.
+
+name: Bericht erstellen
+
+on:
+  push:
+    branches: [main]          # bei jeder Änderung auf main, z. B. neue Excel-Datei
+  pull_request:
+    branches: [main]          # prüft Änderungsvorschläge, bevor sie übernommen werden
+  workflow_dispatch:          # Knopf "Run workflow" zum Starten von Hand
+  # schedule:                 # Optional: zeitgesteuert, hier montags 6 Uhr (UTC)
+  #   - cron: "0 6 * * 1"
+
+permissions:
+  contents: read
+
+jobs:
+  bericht:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Projekt holen
+        uses: actions/checkout@v4
+
+      - name: Python einrichten
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.13"
+          cache: pip
+
+      - name: Pakete installieren
+        run: pip install -r requirements.txt
+
+      - name: Rechenlogik prüfen (Tests)
+        run: python -m pytest
+
+      - name: Dashboard erstellen (prüft auch die Excel-Datei)
+        run: python dashboard.py
+
+      # Stufe 3: Die nächsten zwei Zeilen einkommentieren (jeweils "# " am Anfang entfernen)
+      # - name: Präsentation erstellen
+      #   run: python praesentation.py
+
+      - name: Ergebnis zum Download ablegen
+        uses: actions/upload-artifact@v4
+        with:
+          name: bericht
+          path: ausgabe/
+          if-no-files-found: error
+          retention-days: 14
