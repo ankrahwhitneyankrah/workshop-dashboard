@@ -13,7 +13,8 @@ daten/projekte.xlsx ──► bericht.py (prüfen + rechnen) ──► dashboard
 |---|---|
 | `daten/projekte.xlsx` | Die Daten. Wird eine neue Datei mit gleichem Namen hochgeladen, entsteht ein neuer Bericht. |
 | `bericht.py` | Das Herzstück: Excel laden, auf Fehler prüfen, Kennzahlen berechnen. |
-| `dashboard.py` | Baut daraus das Dashboard (eine HTML-Datei, funktioniert ohne Internet). |
+| `dashboard.py` | Baut daraus das Dashboard und legt fest, welche Kennzahlen als Kacheln erscheinen (`KARTEN`). |
+| `dashboard_vorlage.html` | Aussehen und Bedienung des Dashboards: Filter, Diagramme, Tabelle. Funktioniert ohne Internet. |
 | `praesentation.py` | Baut aus denselben Zahlen die PowerPoint. |
 | `test_bericht.py` | Automatische Kontrolle: Rechnet das Programm richtig? Erkennt es fehlerhafte Daten? |
 | `.github/workflows/bericht.yml` | Das „Rezept“ für GitHub: Bei jeder Änderung wird alles automatisch geprüft und neu gebaut. |
@@ -31,7 +32,9 @@ daten/projekte.xlsx ──► bericht.py (prüfen + rechnen) ──► dashboard
 
 1. Im Copilot-Chat `/projekt-erklaeren` eingeben und die Erklärung lesen.
 2. **Terminal → Aufgabe ausführen → „1 · Dashboard erstellen“**. Das Dashboard öffnet sich im Browser.
-   **Sollwert:** 8 Projekte · 670 h Plan · 620 h Ist · −50 h Abweichung
+   **Sollwert:** 8 Projekte · 670 h Plan · 620 h Ist · −50 h Abweichung · 93 % Ausschöpfung
+   Ausprobieren: Filter nach Bereich und Status, auf einen Bereich im rechten Diagramm klicken, mit der Maus über die Balken fahren, Tabelle sortieren.
+   **Kontrolle:** Bereich „Finanzen“ → 2 Projekte · 130 h Plan · 150 h Ist · 115 %
 3. Im Copilot-Chat (Agent-Modus) `/kennzahl-ergaenzen` eingeben:
    - Name: *Projekte über Plan*
    - Regel: *Anzahl Projekte mit Ist_Stunden größer als Plan_Stunden*
@@ -44,7 +47,7 @@ daten/projekte.xlsx ──► bericht.py (prüfen + rechnen) ──► dashboard
 1. **Synchronisieren** bzw. **Push**: Die Änderungen gehen zu GitHub.
 2. Auf GitHub den Tab **Actions** öffnen und zusehen, wie der Bericht gebaut wird. Danach unter **Artifacts** „bericht“ herunterladen.
 3. Neuer Datenstand: Auf GitHub den Ordner `daten` öffnen, **Add file → Upload files** wählen und die Datei `beispieldaten/stand_2_september/projekte.xlsx` von eurem Rechner hineinziehen. Sie ersetzt die alte Datei. **Commit changes** klicken. Ein neuer Lauf startet von selbst.
-   **Sollwert:** 9 Projekte · 700 h Plan · 670 h Ist · −30 h Abweichung · 4 Projekte über Plan
+   **Sollwert:** 9 Projekte · 700 h Plan · 670 h Ist · −30 h Abweichung · 96 % Ausschöpfung · 4 Projekte über Plan
 4. Fehlerfall: Dasselbe mit `beispieldaten/stand_fehlerhaft/projekte.xlsx`. Der Lauf wird **rot**, es entsteht kein neuer Bericht. Die Fehlermeldung nennt die doppelte „Schichtplanung“ und die fehlenden Stunden bei „Wissensdatenbank“.
 5. In VS Code **Pull** (bzw. Synchronisieren) ausführen, damit euer Rechner den neuesten Stand von GitHub hat.
 

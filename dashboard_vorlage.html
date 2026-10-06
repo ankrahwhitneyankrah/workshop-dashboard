@@ -1,0 +1,549 @@
+<!doctype html>
+<!--
+  Vorlage für das Dashboard: Aussehen und Bedienung.
+  dashboard.py setzt an der Stelle __DATEN__ die geprüften Daten und Kennzahlen ein.
+  Hier wird nichts berechnet, was eine Kennzahl ist - die kommen alle aus bericht.py.
+-->
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Projektstatus</title>
+<style>
+  :root {
+    color-scheme: light;
+    --seite: #f9f9f7;
+    --flaeche: #fcfcfb;
+    --text: #0b0b0b;
+    --text-2: #52514e;
+    --leise: #6f6d68;
+    --linie: #e1e0d9;
+    --achse: #c3c2b7;
+    --rand: rgba(11, 11, 11, 0.10);
+    --serie: #2a78d6;
+    --serie-hover: #1c5cab;
+    --plan-spur: #e6e5df;
+    --meter-spur: #cde2fb;
+    --kritisch: #d03b3b;
+    --gut: #0ca30c;
+    --waschung: rgba(42, 120, 214, 0.08);
+    --schatten: 0 1px 2px rgba(11, 11, 11, 0.04), 0 4px 16px rgba(11, 11, 11, 0.04);
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      color-scheme: dark;
+      --seite: #0d0d0d; --flaeche: #1a1a19; --text: #ffffff; --text-2: #c3c2b7; --leise: #a3a29b;
+      --linie: #2c2c2a; --achse: #383835; --rand: rgba(255, 255, 255, 0.10);
+      --serie: #3987e5; --serie-hover: #6da7ec; --plan-spur: #2f2f2c; --meter-spur: #184f95;
+      --waschung: rgba(57, 135, 229, 0.14); --schatten: none;
+    }
+  }
+  :root[data-theme="dark"] {
+    color-scheme: dark;
+    --seite: #0d0d0d; --flaeche: #1a1a19; --text: #ffffff; --text-2: #c3c2b7; --leise: #a3a29b;
+    --linie: #2c2c2a; --achse: #383835; --rand: rgba(255, 255, 255, 0.10);
+    --serie: #3987e5; --serie-hover: #6da7ec; --plan-spur: #2f2f2c; --meter-spur: #184f95;
+    --waschung: rgba(57, 135, 229, 0.14); --schatten: none;
+  }
+
+  * { box-sizing: border-box; }
+  body { margin: 0; background: var(--seite); color: var(--text);
+         font: 15px/1.5 system-ui, -apple-system, "Segoe UI", sans-serif; }
+  .seite { max-width: 1240px; margin: 0 auto; padding: 28px 20px 48px; }
+  h1 { margin: 0; font-size: 26px; font-weight: 650; letter-spacing: -0.01em; }
+  h2 { margin: 0; font-size: 16px; font-weight: 600; }
+  .leise { color: var(--leise); font-size: 13px; margin: 2px 0 0; }
+  button, select, input { font: inherit; color: inherit; }
+
+  /* Kopf */
+  .kopf { display: flex; flex-wrap: wrap; gap: 16px; justify-content: space-between; align-items: flex-start; margin-bottom: 20px; }
+  .unterzeile { color: var(--text-2); margin: 4px 0 0; }
+  .pruefung { display: inline-flex; align-items: center; gap: 8px; padding: 8px 12px; border-radius: 999px;
+              background: var(--flaeche); border: 1px solid var(--rand); font-size: 13px; }
+  .pruefung svg { flex: none; }
+  .pruefung .leise { margin: 0; }
+
+  /* Filterzeile */
+  .filter { display: flex; flex-wrap: wrap; align-items: flex-end; gap: 12px 20px; padding: 14px 16px; margin-bottom: 16px;
+            background: var(--flaeche); border: 1px solid var(--rand); border-radius: 12px; }
+  .feld { display: flex; flex-direction: column; gap: 4px; }
+  .feld > span { font-size: 12px; color: var(--leise); }
+  select { min-width: 180px; padding: 7px 10px; border-radius: 8px; border: 1px solid var(--achse); background: var(--flaeche); }
+  .segmente { display: inline-flex; flex-wrap: wrap; padding: 3px; gap: 2px; border-radius: 9px; background: var(--seite); border: 1px solid var(--rand); }
+  .segmente button { border: 0; background: transparent; padding: 5px 11px; border-radius: 7px; cursor: pointer; color: var(--text-2); }
+  .segmente button:hover { background: var(--waschung); }
+  .segmente button[aria-pressed="true"] { background: var(--flaeche); color: var(--text); font-weight: 600; box-shadow: 0 0 0 1px var(--rand); }
+  .segmente .anzahl { color: var(--leise); font-weight: 400; margin-left: 4px; font-variant-numeric: tabular-nums; }
+  .segmente.klein button { padding: 3px 9px; font-size: 13px; }
+  .link { border: 0; background: none; color: var(--serie); cursor: pointer; padding: 6px 0; }
+  .link:disabled { color: var(--leise); cursor: default; }
+  .auswahl { margin-left: auto; color: var(--text-2); font-size: 13px; padding-bottom: 6px; }
+
+  /* Kennzahlen */
+  .karten { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 12px; margin-bottom: 16px; }
+  .kachel { background: var(--flaeche); border: 1px solid var(--rand); border-radius: 12px; padding: 16px 18px; box-shadow: var(--schatten); }
+  .kachel .titel { font-size: 13px; color: var(--text-2); }
+  .kachel .wert { font-size: 30px; font-weight: 650; line-height: 1.2; margin: 6px 0 2px; letter-spacing: -0.01em; }
+  .kachel .erklaerung { font-size: 12px; color: var(--leise); }
+  .meter { height: 6px; border-radius: 3px; background: var(--meter-spur); margin: 10px 0 6px; overflow: hidden; }
+  .meter div { height: 100%; border-radius: 0 3px 3px 0; background: var(--serie); }
+  .meter.ueber div { background: var(--kritisch); }
+
+  /* Karten mit Diagrammen */
+  .raster { display: grid; grid-template-columns: minmax(0, 1.7fr) minmax(0, 1fr); gap: 16px; margin-bottom: 16px; }
+  section.karte { background: var(--flaeche); border: 1px solid var(--rand); border-radius: 12px; padding: 18px 20px; box-shadow: var(--schatten); }
+  .karte-kopf { display: flex; flex-wrap: wrap; gap: 12px; justify-content: space-between; align-items: flex-start; margin-bottom: 14px; }
+  .legende { display: flex; flex-wrap: wrap; gap: 16px; font-size: 12px; color: var(--text-2); margin: -4px 0 12px; }
+  .legende i { display: inline-block; vertical-align: -1px; margin-right: 6px; border-radius: 2px; }
+
+  /* Plan-/Ist-Balken je Projekt */
+  .zeile { display: grid; grid-template-columns: 150px minmax(0, 1fr) 132px; gap: 12px; align-items: center;
+           padding: 5px 6px; margin: 0 -6px; border-radius: 6px; outline: none; }
+  .zeile:hover, .zeile:focus-visible { background: var(--waschung); }
+  .zeile .name { font-size: 13px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .spur { position: relative; height: 18px; }
+  .spur .plan { position: absolute; left: 0; top: 2px; bottom: 2px; background: var(--plan-spur); border-radius: 0 3px 3px 0; }
+  .spur .ist { position: absolute; left: 0; top: 5px; height: 8px; background: var(--serie); border-radius: 0 4px 4px 0; }
+  .spur .ist.ueber { background: var(--kritisch); }
+  .spur .marke { position: absolute; top: 0; bottom: 0; width: 2px; margin-left: -1px; background: var(--text-2); border-radius: 1px; }
+  .zeile .zahl { font-size: 13px; text-align: right; color: var(--text-2); font-variant-numeric: tabular-nums; white-space: nowrap; }
+  .zeile .zahl b { color: var(--text); font-weight: 600; }
+  .hinweis-ueber { display: inline-flex; align-items: center; gap: 3px; margin-left: 6px; font-size: 12px; color: var(--text); }
+
+  /* Bereiche (klickbar) */
+  .bereich { display: grid; grid-template-columns: 110px minmax(0, 1fr) 64px; gap: 10px; align-items: center; width: 100%;
+             border: 0; background: none; text-align: left; padding: 6px; margin: 0 -6px 2px; border-radius: 6px; cursor: pointer; }
+  .bereich:hover, .bereich:focus-visible { background: var(--waschung); outline: none; }
+  .bereich .balken { height: 14px; border-radius: 0 4px 4px 0; background: var(--serie); max-width: 100%; }
+  .bereich.gedimmt .balken { background: var(--plan-spur); }
+  .bereich.gedimmt .name { color: var(--leise); }
+  .bereich .name { font-size: 13px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .bereich .zahl { font-size: 13px; text-align: right; font-variant-numeric: tabular-nums; color: var(--text-2); }
+
+  /* Tabelle */
+  .werkzeuge { display: flex; flex-wrap: wrap; gap: 8px; }
+  input[type="search"] { padding: 6px 10px; border-radius: 8px; border: 1px solid var(--achse); background: var(--flaeche); min-width: 200px; }
+  .knopf { padding: 6px 12px; border-radius: 8px; border: 1px solid var(--achse); background: var(--flaeche); cursor: pointer; }
+  .knopf:hover { background: var(--waschung); }
+  .tabelle-rahmen { overflow-x: auto; }
+  table { width: 100%; border-collapse: collapse; font-size: 14px; }
+  th, td { padding: 9px 10px; border-bottom: 1px solid var(--linie); text-align: left; white-space: nowrap; }
+  th { font-size: 12px; font-weight: 600; color: var(--text-2); }
+  th button { border: 0; background: none; padding: 0; cursor: pointer; font-weight: 600; color: inherit; }
+  th[aria-sort] button::after { content: " ↓"; }
+  th[aria-sort="ascending"] button::after { content: " ↑"; }
+  td.r, th.r { text-align: right; font-variant-numeric: tabular-nums; }
+  tbody tr:hover { background: var(--waschung); }
+  .mini { display: inline-block; width: 64px; height: 6px; border-radius: 3px; background: var(--meter-spur); vertical-align: middle; margin-right: 8px; overflow: hidden; }
+  .mini div { height: 100%; background: var(--serie); }
+  .mini.ueber div { background: var(--kritisch); }
+  .status { display: inline-block; padding: 1px 8px; border-radius: 999px; font-size: 12px; border: 1px solid var(--rand); color: var(--text-2); }
+  .leer { color: var(--leise); padding: 24px 0; text-align: center; }
+
+  /* Tooltip */
+  .tooltip { position: fixed; z-index: 10; pointer-events: none; min-width: 180px; padding: 10px 12px; border-radius: 10px;
+             background: var(--flaeche); border: 1px solid var(--rand); box-shadow: 0 8px 24px rgba(0, 0, 0, 0.16); font-size: 13px; }
+  .tooltip .kopfzeile { color: var(--text-2); margin-bottom: 6px; }
+  .tooltip .tz { display: flex; justify-content: space-between; gap: 16px; }
+  .tooltip .tz b { font-variant-numeric: tabular-nums; }
+  .tooltip .tz span { color: var(--text-2); display: inline-flex; align-items: center; gap: 6px; }
+  .tooltip .tz span i { display: inline-block; width: 10px; height: 2px; border-radius: 1px; }
+
+  footer { color: var(--leise); font-size: 12px; margin-top: 20px; }
+
+  @media (max-width: 900px) {
+    .raster { grid-template-columns: 1fr; }
+    .auswahl { margin-left: 0; width: 100%; }
+  }
+  @media (max-width: 520px) {
+    .zeile { grid-template-columns: 96px minmax(0, 1fr) 96px; gap: 8px; }
+    .hinweis-ueber span { display: none; }
+  }
+  @media print {
+    .filter .link, .werkzeuge { display: none; }
+    section.karte, .kachel { box-shadow: none; break-inside: avoid; }
+  }
+</style>
+</head>
+<body>
+<main class="seite">
+  <header class="kopf">
+    <div>
+      <h1>Projektstatus</h1>
+      <p class="unterzeile" id="unterzeile"></p>
+    </div>
+    <div class="pruefung" title="Die Excel-Datei wurde vor der Berechnung automatisch geprüft">
+      <svg width="16" height="16" viewBox="0 0 16 16" aria-hidden="true"><circle cx="8" cy="8" r="8" fill="var(--gut)"/><path d="M4.5 8.2l2.2 2.2 4.8-4.8" stroke="#fff" stroke-width="1.8" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      <strong>Daten geprüft</strong><span class="leise" id="pruefung-detail"></span>
+    </div>
+  </header>
+
+  <div class="filter" role="group" aria-label="Filter">
+    <label class="feld"><span>Bereich</span><select id="filter-bereich"></select></label>
+    <div class="feld"><span>Status</span><div class="segmente" id="filter-status" role="group" aria-label="Status"></div></div>
+    <button class="link" id="zuruecksetzen" type="button">Filter zurücksetzen</button>
+    <span class="auswahl" id="auswahl-info" aria-live="polite"></span>
+  </div>
+
+  <div class="karten" id="karten"></div>
+
+  <div class="raster">
+    <section class="karte">
+      <div class="karte-kopf">
+        <div>
+          <h2>Plan und Ist je Projekt</h2>
+          <p class="leise">Wo liegt der Aufwand über oder unter der Planung?</p>
+        </div>
+        <div class="segmente klein" id="sortierung" role="group" aria-label="Sortierung"></div>
+      </div>
+      <div class="legende">
+        <span><i style="width:14px;height:10px;background:var(--plan-spur)"></i>Plan</span>
+        <span><i style="width:14px;height:8px;background:var(--serie)"></i>Ist</span>
+        <span><i style="width:14px;height:8px;background:var(--kritisch)"></i>Ist über Plan</span>
+      </div>
+      <div id="projekte"></div>
+    </section>
+    <section class="karte">
+      <div class="karte-kopf">
+        <div>
+          <h2>Ist-Stunden je Bereich</h2>
+          <p class="leise">Auf einen Bereich klicken, um danach zu filtern</p>
+        </div>
+      </div>
+      <div id="bereiche"></div>
+    </section>
+  </div>
+
+  <section class="karte">
+    <div class="karte-kopf">
+      <div>
+        <h2>Alle Projekte</h2>
+        <p class="leise" id="tabelle-info"></p>
+      </div>
+      <div class="werkzeuge">
+        <input type="search" id="suche" placeholder="Projekt suchen" aria-label="Projekt suchen">
+        <button class="knopf" id="csv" type="button">CSV herunterladen</button>
+      </div>
+    </div>
+    <div class="tabelle-rahmen">
+      <table>
+        <thead><tr id="tabelle-kopf"></tr></thead>
+        <tbody id="tabelle-inhalt"></tbody>
+      </table>
+    </div>
+  </section>
+
+  <footer id="fusszeile"></footer>
+</main>
+<div class="tooltip" id="tooltip" role="tooltip" hidden></div>
+
+<script>
+const DATEN = __DATEN__;
+</script>
+<script>
+"use strict";
+
+const ALLE = "Alle";
+const zustand = { bereich: ALLE, status: ALLE, sortierung: "abweichung", suche: "", tabelleSpalte: "Abweichung", tabelleAuf: false };
+
+const zahlFormat = new Intl.NumberFormat("de-DE", { maximumFractionDigits: 0 });
+const z = (w) => zahlFormat.format(w);
+const mitVorzeichen = (w) => (w > 0 ? "+" : w < 0 ? "−" : "±") + z(Math.abs(w));
+const prozent = (w) => z(w * 100) + " %";
+
+function el(tag, klasse, text) {
+  const e = document.createElement(tag);
+  if (klasse) e.className = klasse;
+  if (text !== undefined) e.textContent = text;
+  return e;
+}
+
+/* ---------- Auswahl ---------- */
+function gefilterteZeilen(ohneBereich) {
+  return DATEN.zeilen.filter((r) =>
+    (ohneBereich || zustand.bereich === ALLE || r.Bereich === zustand.bereich) &&
+    (zustand.status === ALLE || r.Status === zustand.status));
+}
+function aktuelleKennzahlen() {
+  return DATEN.kennzahlen[zustand.bereich + "|" + zustand.status];
+}
+
+/* ---------- Tooltip ---------- */
+const tooltip = document.getElementById("tooltip");
+function zeigeTooltip(ereignis, kopf, zeilen) {
+  tooltip.replaceChildren();
+  tooltip.appendChild(el("div", "kopfzeile", kopf));
+  for (const [beschriftung, wert, farbe] of zeilen) {
+    const zeile = el("div", "tz");
+    const name = el("span", null);
+    if (farbe) { const i = el("i"); i.style.background = farbe; name.appendChild(i); }
+    name.appendChild(document.createTextNode(beschriftung));
+    zeile.append(name, el("b", null, wert));
+    tooltip.appendChild(zeile);
+  }
+  tooltip.hidden = false;
+  let x, y;
+  if (ereignis.type === "focus") {
+    const r = ereignis.currentTarget.getBoundingClientRect();
+    x = r.left + r.width / 2; y = r.bottom;
+  } else { x = ereignis.clientX; y = ereignis.clientY; }
+  const b = tooltip.offsetWidth, h = tooltip.offsetHeight;
+  tooltip.style.left = Math.max(8, Math.min(x + 14, window.innerWidth - b - 8)) + "px";
+  tooltip.style.top = (y + 16 + h > window.innerHeight ? y - h - 12 : y + 16) + "px";
+}
+function versteckeTooltip() { tooltip.hidden = true; }
+function mitTooltip(element, inhalt) {
+  const zeigen = (e) => { const [kopf, zeilen] = inhalt(); zeigeTooltip(e, kopf, zeilen); };
+  element.addEventListener("pointermove", zeigen);
+  element.addEventListener("focus", zeigen);
+  element.addEventListener("pointerleave", versteckeTooltip);
+  element.addEventListener("blur", versteckeTooltip);
+}
+
+/* ---------- Filter ---------- */
+function baueFilter() {
+  const auswahl = document.getElementById("filter-bereich");
+  for (const b of [ALLE, ...DATEN.bereiche]) {
+    const o = el("option", null, b === ALLE ? "Alle Bereiche" : b);
+    o.value = b; auswahl.appendChild(o);
+  }
+  auswahl.addEventListener("change", () => { zustand.bereich = auswahl.value; zeichne(); });
+  document.getElementById("zuruecksetzen").addEventListener("click", () => {
+    zustand.bereich = ALLE; zustand.status = ALLE; zustand.suche = "";
+    document.getElementById("suche").value = ""; zeichne();
+  });
+  const sortierung = document.getElementById("sortierung");
+  for (const [schluessel, text] of [["abweichung", "Abweichung"], ["ist", "Ist"], ["name", "Name"]]) {
+    const k = el("button", null, text); k.type = "button"; k.dataset.wert = schluessel;
+    k.addEventListener("click", () => { zustand.sortierung = schluessel; zeichne(); });
+    sortierung.appendChild(k);
+  }
+  document.getElementById("suche").addEventListener("input", (e) => { zustand.suche = e.target.value.trim().toLowerCase(); zeichneTabelle(); });
+  document.getElementById("csv").addEventListener("click", csvHerunterladen);
+}
+
+function zeichneStatusFilter() {
+  const ziel = document.getElementById("filter-status");
+  ziel.replaceChildren();
+  const basis = DATEN.zeilen.filter((r) => zustand.bereich === ALLE || r.Bereich === zustand.bereich);
+  for (const s of [ALLE, ...DATEN.status]) {
+    const anzahl = s === ALLE ? basis.length : basis.filter((r) => r.Status === s).length;
+    const k = el("button", null, s === ALLE ? "Alle" : s);
+    k.type = "button";
+    k.setAttribute("aria-pressed", String(zustand.status === s));
+    k.appendChild(el("span", "anzahl", String(anzahl)));
+    k.addEventListener("click", () => { zustand.status = s; zeichne(); });
+    ziel.appendChild(k);
+  }
+}
+
+/* ---------- Kennzahlen-Kacheln ---------- */
+function zeichneKarten() {
+  const ziel = document.getElementById("karten");
+  ziel.replaceChildren();
+  const k = aktuelleKennzahlen();
+  for (const karte of DATEN.karten) {
+    const kachel = el("div", "kachel");
+    kachel.appendChild(el("div", "titel", karte.titel));
+    const wert = k ? k[karte.schluessel] : null;
+    let text = "–";
+    if (wert !== null && wert !== undefined) {
+      if (karte.format === "stunden") text = z(wert) + " h";
+      else if (karte.format === "abweichung") text = mitVorzeichen(wert) + " h";
+      else if (karte.format === "prozent") text = prozent(wert);
+      else text = z(wert);
+    }
+    kachel.appendChild(el("div", "wert", text));
+    if (karte.format === "prozent" && typeof wert === "number") {
+      const meter = el("div", "meter" + (wert > 1 ? " ueber" : ""));
+      const fuellung = el("div"); fuellung.style.width = Math.min(wert, 1) * 100 + "%";
+      meter.setAttribute("role", "img"); meter.setAttribute("aria-label", prozent(wert));
+      meter.appendChild(fuellung); kachel.appendChild(meter);
+    }
+    kachel.appendChild(el("div", "erklaerung", karte.erklaerung));
+    ziel.appendChild(kachel);
+  }
+}
+
+/* ---------- Plan und Ist je Projekt ---------- */
+function zeichneProjekte(zeilen) {
+  const ziel = document.getElementById("projekte");
+  ziel.replaceChildren();
+  for (const k of document.querySelectorAll("#sortierung button")) k.setAttribute("aria-pressed", String(k.dataset.wert === zustand.sortierung));
+  if (!zeilen.length) { ziel.appendChild(el("p", "leer", "Keine Projekte in dieser Auswahl.")); return; }
+
+  const sortiert = [...zeilen].sort((a, b) =>
+    zustand.sortierung === "name" ? a.Projekt.localeCompare(b.Projekt, "de") :
+    zustand.sortierung === "ist" ? b.Ist_Stunden - a.Ist_Stunden :
+    (b.Ist_Stunden - b.Plan_Stunden) - (a.Ist_Stunden - a.Plan_Stunden));
+  const groesster = Math.max(...sortiert.map((r) => Math.max(r.Plan_Stunden, r.Ist_Stunden)), 1);
+
+  for (const r of sortiert) {
+    const ueber = r.Ist_Stunden > r.Plan_Stunden;
+    const zeile = el("div", "zeile"); zeile.tabIndex = 0;
+    zeile.setAttribute("aria-label", `${r.Projekt}: Ist ${z(r.Ist_Stunden)} von ${z(r.Plan_Stunden)} Stunden geplant`);
+    zeile.appendChild(el("div", "name", r.Projekt));
+
+    const spur = el("div", "spur");
+    const plan = el("div", "plan"); plan.style.width = (r.Plan_Stunden / groesster) * 100 + "%";
+    const ist = el("div", "ist" + (ueber ? " ueber" : "")); ist.style.width = (r.Ist_Stunden / groesster) * 100 + "%";
+    const marke = el("div", "marke"); marke.style.left = (r.Plan_Stunden / groesster) * 100 + "%";
+    spur.append(plan, ist, marke);
+    zeile.appendChild(spur);
+
+    const zahl = el("div", "zahl");
+    zahl.appendChild(el("b", null, z(r.Ist_Stunden)));
+    zahl.appendChild(document.createTextNode(" / " + z(r.Plan_Stunden) + " h"));
+    if (ueber) {
+      const hinweis = el("span", "hinweis-ueber");
+      hinweis.innerHTML = '<svg width="10" height="10" viewBox="0 0 10 10" aria-hidden="true"><path d="M5 1l4 7H1z" fill="var(--kritisch)"/></svg>';
+      hinweis.appendChild(el("span", null, "über Plan"));
+      zahl.appendChild(hinweis);
+    }
+    zeile.appendChild(zahl);
+
+    mitTooltip(zeile, () => [r.Projekt + " · " + r.Bereich, [
+      ["Plan", z(r.Plan_Stunden) + " h", "var(--achse)"],
+      ["Ist", z(r.Ist_Stunden) + " h", ueber ? "var(--kritisch)" : "var(--serie)"],
+      ["Abweichung", mitVorzeichen(r.Ist_Stunden - r.Plan_Stunden) + " h"],
+      ["Ausschöpfung", r.Plan_Stunden ? prozent(r.Ist_Stunden / r.Plan_Stunden) : "–"],
+      ["Status", r.Status],
+    ]]);
+    ziel.appendChild(zeile);
+  }
+}
+
+/* ---------- Ist-Stunden je Bereich ---------- */
+function zeichneBereiche() {
+  const ziel = document.getElementById("bereiche");
+  ziel.replaceChildren();
+  const zeilen = gefilterteZeilen(true);  // Status-Filter gilt, Bereich bleibt auswählbar
+  const summen = new Map();
+  for (const r of zeilen) summen.set(r.Bereich, (summen.get(r.Bereich) || 0) + r.Ist_Stunden);
+  const liste = [...summen.entries()].sort((a, b) => b[1] - a[1]);
+  if (!liste.length) { ziel.appendChild(el("p", "leer", "Keine Projekte in dieser Auswahl.")); return; }
+  const groesster = Math.max(...liste.map((e) => e[1]), 1);
+  const gesamt = liste.reduce((s, e) => s + e[1], 0);
+
+  for (const [bereich, summe] of liste) {
+    const aktiv = zustand.bereich === bereich;
+    const knopf = el("button", "bereich" + (zustand.bereich !== ALLE && !aktiv ? " gedimmt" : ""));
+    knopf.type = "button";
+    knopf.setAttribute("aria-pressed", String(aktiv));
+    knopf.setAttribute("aria-label", `${bereich}: ${z(summe)} Ist-Stunden. ${aktiv ? "Filter aufheben" : "Danach filtern"}`);
+    knopf.appendChild(el("span", "name", bereich));
+    const halter = el("span"); const balken = el("div", "balken");
+    balken.style.width = Math.max((summe / groesster) * 100, summe > 0 ? 1 : 0) + "%";
+    halter.appendChild(balken); knopf.appendChild(halter);
+    knopf.appendChild(el("span", "zahl", z(summe) + " h"));
+    knopf.addEventListener("click", () => { zustand.bereich = aktiv ? ALLE : bereich; versteckeTooltip(); zeichne(); });
+    const anzahl = zeilen.filter((r) => r.Bereich === bereich).length;
+    mitTooltip(knopf, () => [bereich, [
+      ["Ist-Stunden", z(summe) + " h", "var(--serie)"],
+      ["Anteil", gesamt ? prozent(summe / gesamt) : "–"],
+      ["Projekte", z(anzahl)],
+    ]]);
+    ziel.appendChild(knopf);
+  }
+}
+
+/* ---------- Tabelle ---------- */
+const SPALTEN = [
+  { titel: "Projekt", wert: (r) => r.Projekt },
+  { titel: "Bereich", wert: (r) => r.Bereich },
+  { titel: "Status", wert: (r) => r.Status },
+  { titel: "Plan (h)", wert: (r) => r.Plan_Stunden, zahl: true },
+  { titel: "Ist (h)", wert: (r) => r.Ist_Stunden, zahl: true },
+  { titel: "Abweichung", wert: (r) => r.Ist_Stunden - r.Plan_Stunden, zahl: true },
+  { titel: "Ausschöpfung", wert: (r) => (r.Plan_Stunden ? r.Ist_Stunden / r.Plan_Stunden : 0), zahl: true },
+];
+
+function tabellenZeilen() {
+  const spalte = SPALTEN.find((s) => s.titel === zustand.tabelleSpalte) || SPALTEN[0];
+  return gefilterteZeilen(false)
+    .filter((r) => !zustand.suche || r.Projekt.toLowerCase().includes(zustand.suche))
+    .sort((a, b) => {
+      const x = spalte.wert(a), y = spalte.wert(b);
+      const v = spalte.zahl ? x - y : String(x).localeCompare(String(y), "de");
+      return zustand.tabelleAuf ? v : -v;
+    });
+}
+
+function zeichneTabelle() {
+  const kopf = document.getElementById("tabelle-kopf");
+  kopf.replaceChildren();
+  for (const s of SPALTEN) {
+    const th = el("th", s.zahl ? "r" : null);
+    if (s.titel === zustand.tabelleSpalte) th.setAttribute("aria-sort", zustand.tabelleAuf ? "ascending" : "descending");
+    const k = el("button", null, s.titel); k.type = "button";
+    k.addEventListener("click", () => {
+      zustand.tabelleAuf = zustand.tabelleSpalte === s.titel ? !zustand.tabelleAuf : !s.zahl;
+      zustand.tabelleSpalte = s.titel; zeichneTabelle();
+    });
+    th.appendChild(k); kopf.appendChild(th);
+  }
+
+  const inhalt = document.getElementById("tabelle-inhalt");
+  inhalt.replaceChildren();
+  const zeilen = tabellenZeilen();
+  document.getElementById("tabelle-info").textContent = `${zeilen.length} ${zeilen.length === 1 ? "Projekt" : "Projekte"} angezeigt`;
+  if (!zeilen.length) {
+    const tr = el("tr"); const td = el("td", "leer", "Keine passenden Projekte."); td.colSpan = SPALTEN.length;
+    tr.appendChild(td); inhalt.appendChild(tr); return;
+  }
+  for (const r of zeilen) {
+    const tr = el("tr");
+    const abw = r.Ist_Stunden - r.Plan_Stunden;
+    const anteil = r.Plan_Stunden ? r.Ist_Stunden / r.Plan_Stunden : null;
+    tr.appendChild(el("td", null, r.Projekt));
+    tr.appendChild(el("td", null, r.Bereich));
+    const tdStatus = el("td"); tdStatus.appendChild(el("span", "status", r.Status)); tr.appendChild(tdStatus);
+    tr.appendChild(el("td", "r", z(r.Plan_Stunden)));
+    tr.appendChild(el("td", "r", z(r.Ist_Stunden)));
+    tr.appendChild(el("td", "r", mitVorzeichen(abw) + " h"));
+    const tdAnteil = el("td", "r");
+    if (anteil !== null) {
+      const mini = el("span", "mini" + (anteil > 1 ? " ueber" : "")); const f = el("div");
+      f.style.width = Math.min(anteil, 1) * 100 + "%"; mini.appendChild(f); tdAnteil.appendChild(mini);
+    }
+    tdAnteil.appendChild(document.createTextNode(anteil === null ? "–" : prozent(anteil)));
+    tr.appendChild(tdAnteil);
+    inhalt.appendChild(tr);
+  }
+}
+
+function csvHerunterladen() {
+  const zellen = (w) => '"' + String(w).replace(/"/g, '""') + '"';
+  const zeilen = [["Projekt", "Bereich", "Status", "Plan_Stunden", "Ist_Stunden", "Abweichung"].join(";")];
+  for (const r of tabellenZeilen()) {
+    zeilen.push([zellen(r.Projekt), zellen(r.Bereich), zellen(r.Status), r.Plan_Stunden, r.Ist_Stunden, r.Ist_Stunden - r.Plan_Stunden].join(";"));
+  }
+  const blob = new Blob(["﻿" + zeilen.join("\r\n")], { type: "text/csv;charset=utf-8" });
+  const a = document.createElement("a");
+  a.href = URL.createObjectURL(blob);
+  a.download = "projektstatus_" + DATEN.datenstand.split(".").reverse().join("-") + ".csv";
+  document.body.appendChild(a); a.click(); a.remove();
+  setTimeout(() => URL.revokeObjectURL(a.href), 1000);
+}
+
+/* ---------- Alles zeichnen ---------- */
+function zeichne() {
+  const zeilen = gefilterteZeilen(false);
+  document.getElementById("filter-bereich").value = zustand.bereich;
+  document.getElementById("zuruecksetzen").disabled = zustand.bereich === ALLE && zustand.status === ALLE && !zustand.suche;
+  document.getElementById("auswahl-info").textContent = `${zeilen.length} von ${DATEN.zeilen.length} Projekten ausgewählt`;
+  zeichneStatusFilter();
+  zeichneKarten();
+  zeichneProjekte(zeilen);
+  zeichneBereiche();
+  zeichneTabelle();
+}
+
+document.getElementById("unterzeile").textContent = `Datenstand ${DATEN.datenstand} · erstellt am ${DATEN.erstellt}`;
+document.getElementById("pruefung-detail").textContent = `${DATEN.zeilen.length} Zeilen · 0 Fehler`;
+document.getElementById("fusszeile").textContent = `Automatisch erzeugt aus ${DATEN.quelle} · synthetische Workshopdaten`;
+baueFilter();
+zeichne();
+</script>
+</body>
+</html>

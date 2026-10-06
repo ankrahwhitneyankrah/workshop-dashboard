@@ -28,6 +28,7 @@ def test_kennzahlen_stimmen():
     assert k["plan_stunden"] == 60
     assert k["ist_stunden"] == 42
     assert k["abweichung"] == -18
+    assert k["ausschoepfung"] == pytest.approx(0.7)  # 42 von 60 Stunden
     assert k["datenstand"] == "01.09.2026"
 
 

@@ -6,6 +6,8 @@ Diese Regeln gelten automatisch für jede Anfrage in diesem Projekt.
 - Aus `daten/projekte.xlsx` entstehen automatisch ein Dashboard (`dashboard.py`) und eine PowerPoint (`praesentation.py`).
 - Alle Kennzahlen werden ausschließlich in `bericht.py` in der Funktion `berechnen` ermittelt. Dashboard und PowerPoint rechnen nicht selbst, sondern verwenden nur diese Werte.
 - Die Prüfung der Excel-Datei steht in `bericht.py` in der Funktion `pruefen`.
+- Welche Kennzahlen als Kacheln im Dashboard erscheinen, steht in `dashboard.py` in der Liste `KARTEN`.
+- Aussehen und Bedienung des Dashboards (Filter, Diagramme, Tabelle) stehen in `dashboard_vorlage.html`. Dort keine Kennzahlen berechnen.
 
 ## Regeln
 - Antworte auf Deutsch und in einfachen Worten. Die Nutzenden sind keine Entwickler.

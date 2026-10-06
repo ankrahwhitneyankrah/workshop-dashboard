@@ -10,7 +10,7 @@ Erwarteter Wert für die aktuelle Datei daten/projekte.xlsx (von mir nachgerechn
 
 So gehst du vor:
 1. Berechne die Kennzahl in `bericht.py` in der Funktion `berechnen`.
-2. Zeige sie im Dashboard als zusätzliche Karte (`dashboard.py`).
+2. Zeige sie im Dashboard als zusätzliche Kachel: in `dashboard.py` eine Zeile in der Liste `KARTEN` ergänzen. Die Filter funktionieren dann automatisch mit.
 3. Ergänze in `test_bericht.py` einen Test mit der kleinen Beispieltabelle und einem von Hand nachgerechneten Ergebnis.
 4. Führe `python -m pytest` und `python dashboard.py` aus.
 5. Vergleiche den Wert im Dashboard mit meinem erwarteten Wert und sage mir klar, ob er übereinstimmt.

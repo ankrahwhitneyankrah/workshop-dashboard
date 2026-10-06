@@ -70,6 +70,7 @@ def berechnen(df):
         "plan_stunden": plan,
         "ist_stunden": ist,
         "abweichung": ist - plan,
+        "ausschoepfung": ist / plan if plan else None,  # z. B. 0.93 = 93 % des Plans verbraucht
         "datenstand": pd.to_datetime(df["Datenstand"].iloc[0]).strftime("%d.%m.%Y"),
     }
 

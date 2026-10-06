@@ -7,6 +7,8 @@ Nur für die Moderation. Die Teilnehmenden arbeiten mit der [README.md](README.m
 | Geprüft am 06.10.2026, lokal unter Windows mit Python 3.13 | Ergebnis |
 |---|---|
 | Tests Startstand | 5 bestanden |
+| Dashboard-Bedienung (simulierter Browser, 28 Prüfungen) | Filter, Klick auf Bereich, leere Auswahl, Zurücksetzen, Sortierung, Suche, Tooltip, CSV-Export: alle bestanden |
+| Farben | Farbsehschwäche-Prüfung hell und dunkel bestanden |
 | Dashboard Stand 1 | 8 · 670 h · 620 h · −50 h |
 | Dashboard Stand 2 | 9 · 700 h · 670 h · −30 h |
 | Fehlerhafte Datei | Abbruch mit Code 1, verständliche Meldung, kein neuer Bericht |
@@ -17,11 +19,12 @@ Nur für die Moderation. Die Teilnehmenden arbeiten mit der [README.md](README.m
 
 ## Sollwerte auf einen Blick
 
-| Datenstand | Projekte | Plan | Ist | Abweichung | Über Plan |
-|---|---:|---:|---:|---:|---:|
-| `stand_1_september` (Start) | 8 | 670 h | 620 h | −50 h | 2 (Rechnungsprüfung, Reisekosten) |
-| `stand_2_september` | 9 | 700 h | 670 h | −30 h | 4 (+ Kundenportal, Schichtplanung) |
-| `stand_fehlerhaft` | – | – | – | – | Abbruch: Schichtplanung doppelt, Wissensdatenbank ohne Ist-Stunden |
+| Datenstand | Projekte | Plan | Ist | Abweichung | Ausschöpfung | Über Plan |
+|---|---:|---:|---:|---:|---:|---:|
+| `stand_1_september` (Start) | 8 | 670 h | 620 h | −50 h | 93 % | 2 (Rechnungsprüfung, Reisekosten) |
+| ↳ Filter Bereich „Finanzen“ | 2 | 130 h | 150 h | +20 h | 115 % | 2 |
+| `stand_2_september` | 9 | 700 h | 670 h | −30 h | 96 % | 4 (+ Kundenportal, Schichtplanung) |
+| `stand_fehlerhaft` | – | – | – | – | – | Abbruch: Schichtplanung doppelt, Wissensdatenbank ohne Ist-Stunden |
 
 ## Vor dem Workshop (blockierend)
 
