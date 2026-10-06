@@ -37,6 +37,8 @@ Nur für die Moderation. Die Teilnehmenden arbeiten mit der [README.md](README.m
 - [ ] **Actions-Minuten:** Private Repositories haben 2.000 kostenlose Minuten im Monat. Ein Lauf dauert etwa 1 Minute, das reicht reichlich.
 - [ ] **Actions:** Einmal einen Push machen und prüfen, ob der Lauf grün wird. Wird `pip install` blockiert, mit der IT den internen Paket-Spiegel klären.
 - [ ] **Copilot:** In VS Code prüfen, ob der Agent-Modus verfügbar ist und `/kennzahl-ergaenzen` im Chat erscheint.
+- [x] **Copilot-Test (06.10.2026):** `/kennzahl-ergaenzen` im Agent-Modus erfolgreich: 3 Dateien geändert, 6 Tests bestanden, Sollwert 2 bestätigt, Pull Request grün.
+- [ ] **Einladung:** GitHub-Konto anlegen, anonyme E-Mail-Adresse heraussuchen (Settings → Emails), Ordner außerhalb von OneDrive für Projekte bereithalten.
 - [ ] **Teilnehmerrechner:** Python, Git und VS Code installiert? Aufgabe „Pakete installieren“ funktioniert? Einmal auf einem fremden Gerät durchspielen.
 - [ ] **Generalprobe:** Den ganzen Ablauf mit einer Person mit wenig Vorwissen durchspielen und dabei die Zeiten stoppen. Danach die Screenshots für die Folien machen.
 
@@ -59,8 +61,13 @@ Nur für die Moderation. Die Teilnehmenden arbeiten mit der [README.md](README.m
 | `python` wird nicht gefunden | Im Terminal `py dashboard.py` probieren. Sonst Tandem bilden. |
 | `No module named 'pandas'` | VS Code hat die Python-Umgebung eines anderen Projekts aktiviert (beim Test am 06.10.2026 so passiert). Unten rechts in der Statusleiste auf die Python-Version klicken und den normalen Interpreter wählen, danach ein neues Terminal öffnen. Oder Aufgabe „Pakete installieren (einmalig)“ ausführen. |
 | Copilot baut etwas Falsches | Mit **Rückgängig** im Chat bzw. in der Quellcodeverwaltung verwerfen und die Anfrage genauer stellen. Das ist ein guter Lernmoment. |
-| Jemand hängt bei Stufe 1 fest | Musterlösung holen: `git checkout loesung -- bericht.py dashboard.py test_bericht.py` |
-| Jemand hängt bei Stufe 3 fest | `git checkout loesung -- praesentation.py .github/workflows/bericht.yml` |
+| Jemand hängt bei Stufe 1 fest | Musterlösung holen: `git checkout origin/loesung -- bericht.py dashboard.py test_bericht.py` |
+| Jemand hängt bei Stufe 3 fest | Musterlösung **komplett** holen: `git checkout origin/loesung -- bericht.py dashboard.py test_bericht.py praesentation.py .github/workflows/bericht.yml`. Nur einzelne Dateien passen nicht zusammen, weil Copilot eigene interne Namen vergibt. |
+| `origin/loesung` nicht gefunden | Beim Erstellen aus der Vorlage fehlte „Include all branches“. Musterlösung direkt aus dem Vorlage-Repository auf GitHub öffnen (Zweig `loesung`) und Dateien kopieren, oder Repository neu aus der Vorlage erstellen. |
+| Symbol oder Knopf nicht zu finden | Immer über die Befehlspalette: `Strg + Shift + P` und den Befehl tippen, z. B. `Git: Create Branch`, `Python: Select Interpreter`. |
+| Copilot fragt nach Name, Regel, Sollwert | So gewollt: Die Prompt-Datei fragt die drei Angaben ab. Antworten stehen in der README, Stufe 1. |
+| Unter dem Chat „Keep“ und „Undo“ | Erst Ergebnis prüfen, dann **Keep**. Bei falschem Ergebnis **Undo** und genauer fragen. |
+| `Permission denied` bei Git | Repository liegt in OneDrive. Neu klonen in einen Ordner außerhalb von OneDrive. |
 | Im Tab Actions steht „There are no workflow runs yet“ | Beim allerersten Hochladen in ein neues Repository startet GitHub manchmal keinen Lauf (beim Test am 06.10.2026 so passiert). Links auf **Bericht erstellen** und dann **Run workflow** klicken, oder einfach die nächste Änderung pushen. Ab da startet er zuverlässig. |
 | Actions-Lauf bleibt gelb/wartet | Kein Runner verfügbar. Lokal mit den Aufgaben 1–3 weiterarbeiten und den Lauf im Moderations-Repository zeigen. |
 | Actions gar nicht verfügbar | Stufe 2 lokal: Excel in `daten/` ersetzen, Aufgabe „1 · Dashboard erstellen“. Automatisierung nur zeigen. |
