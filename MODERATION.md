@@ -14,7 +14,6 @@ Nur für die Moderation. Die Teilnehmenden arbeiten mit der [README.md](README.m
 | Fehlerhafte Datei | Abbruch mit Code 1, verständliche Meldung, kein neuer Bericht |
 | Musterlösung (Zweig `loesung`) | 6 Tests bestanden. Projekte über Plan: Stand 1 = 2, Stand 2 = 4. Folie mit Tabelle erzeugt |
 | PowerPoint | In PowerPoint geöffnet und als Bild exportiert. Diagramm ist ein echtes, bearbeitbares Diagramm |
-
 | GitHub Actions (06.10.2026, github.com) | Lauf nach Push grün in 24 Sekunden: Tests, Datenprüfung, Dashboard, Download „bericht“ |
 
 **Noch nicht geprüft:** Upload eines neuen Datenstands über die GitHub-Webseite, Fehlerfall auf GitHub, Stufe 3 auf GitHub, Copilot Agent Mode und Prompt-Dateien, Teilnehmerrechner. Das ist die Generalprobe (siehe unten).
