@@ -32,7 +32,7 @@ daten/projekte.xlsx ──► bericht.py (prüfen + rechnen) ──► dashboard
 0. Auf GitHub im Vorlage-Repository **Use this template → Create a new repository** wählen:
    - Sichtbarkeit **Private**
    - Häkchen bei **Include all branches** setzen (sonst fehlt die Musterlösung)
-1. In VS Code `Strg + Shift + P` → `Git: Clone` → euer neues Repository wählen. Als Speicherort einen Ordner **außerhalb von OneDrive** wählen, z. B. `C:SERS<KüRZEL>PROJEKTE`. OneDrive sperrt beim Synchronisieren Dateien, und Git kann dann nicht schreiben.
+1. In VS Code `Strg + Shift + P` → `Git: Clone` → euer neues Repository wählen. Als Speicherort einen Ordner **außerhalb von OneDrive** wählen, z. B. `C:\Users\<Kürzel>\Projekte`. OneDrive sperrt beim Synchronisieren Dateien, und Git kann dann nicht schreiben.
 2. Beim ersten Mal im Terminal Namen und **anonyme** GitHub-E-Mail hinterlegen. Ihr findet sie auf GitHub unter Settings → Emails → „Keep my email addresses private“. Sie sieht aus wie `12345678+name@users.noreply.github.com`.
    `git config --global user.name "Vorname Nachname"`
    `git config --global user.email "12345678+name@users.noreply.github.com"`
