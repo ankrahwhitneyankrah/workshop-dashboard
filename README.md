@@ -17,7 +17,8 @@ daten/projekte.xlsx ──► bericht.py (prüfen + rechnen) ──► dashboard
 | `bericht.py` | Das Herzstück: Excel laden, auf Fehler prüfen, Kennzahlen berechnen. |
 | `dashboard.py` | Baut daraus das Dashboard und legt fest, welche Kennzahlen als Kacheln erscheinen (`KARTEN`). |
 | `dashboard_vorlage.html` | Aussehen und Bedienung des Dashboards: Filter, Diagramme, Tabelle. Funktioniert ohne Internet. |
-| `praesentation.py` | Baut aus denselben Zahlen die PowerPoint. |
+| `praesentation.py` | Baut aus denselben Zahlen die PowerPoint: Kennzahlen, Diagramme, Tabelle, Platz für eure Einordnung und eine Folie zur Datengrundlage. Alles bleibt bearbeitbar. |
+| `vorlage/` | Optional, nur auf eurem Rechner: eure Firmenvorlage als `.pptx`. Wird nie hochgeladen. |
 | `test_bericht.py` | Automatische Kontrolle: Rechnet das Programm richtig? Erkennt es fehlerhafte Daten? |
 | `.github/workflows/bericht.yml` | Das „Rezept“ für GitHub: Bei jeder Änderung wird alles automatisch geprüft und neu gebaut. |
 | `.github/copilot-instructions.md` | Regeln, an die sich Copilot in diesem Projekt immer hält. |
@@ -59,6 +60,7 @@ daten/projekte.xlsx ──► bericht.py (prüfen + rechnen) ──► dashboard
 ## Stufe 3: Daraus eine PowerPoint machen
 
 1. **Terminal → Aufgabe ausführen → „3 · Präsentation erstellen“** und `ausgabe/praesentation.pptx` öffnen.
+   Mit eigener Firmenvorlage: Ordner `vorlage` anlegen, die Vorlage als `.pptx` hineinlegen und erneut erstellen. Schrift, Farben, Fußzeile und Titelbild kommen dann aus der Vorlage. Der Ordner wird nie zu GitHub hochgeladen, die Version aus GitHub Actions ist deshalb immer im neutralen Design.
 2. Im Copilot-Chat `/folie-ergaenzen` eingeben: *Tabelle der Projekte über Plan*.
 3. In `.github/workflows/bericht.yml` den Schritt „Präsentation erstellen“ einkommentieren (oder Copilot darum bitten).
 4. Committen und pushen. GitHub liefert jetzt Dashboard **und** PowerPoint.

@@ -8,6 +8,8 @@ Diese Regeln gelten automatisch für jede Anfrage in diesem Projekt.
 - Die Prüfung der Excel-Datei steht in `bericht.py` in der Funktion `pruefen`.
 - Welche Kennzahlen als Kacheln im Dashboard erscheinen, steht in `dashboard.py` in der Liste `KARTEN`.
 - Aussehen und Bedienung des Dashboards (Filter, Diagramme, Tabelle) stehen in `dashboard_vorlage.html`. Dort keine Kennzahlen berechnen.
+- `praesentation.py` baut Folien aus fertigen Bausteinen (`rahmen.inhaltsfolie`, `tabelle`, `balkendiagramm`, `textfeld`, `erklaerspalte`, `notizen`). Neue Folien verwenden diese Bausteine und keine eigenen Farben oder Schriften.
+- Liegt im Ordner `vorlage/` eine Firmenvorlage, nutzt die Präsentation deren Master. Diesen Ordner nie verändern und nie zu Git hinzufügen.
 
 ## Regeln
 - Antworte auf Deutsch und in einfachen Worten. Die Nutzenden sind keine Entwickler.

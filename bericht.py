@@ -77,5 +77,5 @@ def berechnen(df):
 
 def zahl(wert, vorzeichen=False):
     """Formatiert eine Zahl deutsch, z. B. 1.250 oder +30."""
-    text = f"{wert:+,.0f}" if vorzeichen else f"{wert:,.0f}"
+    text = f"{wert:+,.0f}" if vorzeichen and round(wert) != 0 else f"{wert:,.0f}"
     return text.replace(",", ".")

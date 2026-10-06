@@ -56,6 +56,7 @@ Nur für die Moderation. Die Teilnehmenden arbeiten mit der [README.md](README.m
 | Problem | Lösung |
 |---|---|
 | `python` wird nicht gefunden | Im Terminal `py dashboard.py` probieren. Sonst Tandem bilden. |
+| `No module named 'pandas'` | VS Code hat die Python-Umgebung eines anderen Projekts aktiviert (beim Test am 06.10.2026 so passiert). Unten rechts in der Statusleiste auf die Python-Version klicken und den normalen Interpreter wählen, danach ein neues Terminal öffnen. Oder Aufgabe „Pakete installieren (einmalig)“ ausführen. |
 | Copilot baut etwas Falsches | Mit **Rückgängig** im Chat bzw. in der Quellcodeverwaltung verwerfen und die Anfrage genauer stellen. Das ist ein guter Lernmoment. |
 | Jemand hängt bei Stufe 1 fest | Musterlösung holen: `git checkout loesung -- bericht.py dashboard.py test_bericht.py` |
 | Jemand hängt bei Stufe 3 fest | `git checkout loesung -- praesentation.py .github/workflows/bericht.yml` |
