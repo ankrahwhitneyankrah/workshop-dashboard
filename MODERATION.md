@@ -15,7 +15,9 @@ Nur für die Moderation. Die Teilnehmenden arbeiten mit der [README.md](README.m
 | Musterlösung (Zweig `loesung`) | 6 Tests bestanden. Projekte über Plan: Stand 1 = 2, Stand 2 = 4. Folie mit Tabelle erzeugt |
 | PowerPoint | In PowerPoint geöffnet und als Bild exportiert. Diagramm ist ein echtes, bearbeitbares Diagramm |
 
-**Noch nicht geprüft**, weil nur in eurer Umgebung möglich: GitHub-Repository, GitHub Actions, Copilot Agent Mode und Prompt-Dateien, Teilnehmerrechner. Das ist die Generalprobe (siehe unten).
+| GitHub Actions (06.10.2026, github.com) | Lauf nach Push grün in 24 Sekunden: Tests, Datenprüfung, Dashboard, Download „bericht“ |
+
+**Noch nicht geprüft:** Upload eines neuen Datenstands über die GitHub-Webseite, Fehlerfall auf GitHub, Stufe 3 auf GitHub, Copilot Agent Mode und Prompt-Dateien, Teilnehmerrechner. Das ist die Generalprobe (siehe unten).
 
 ## Sollwerte auf einen Blick
 
@@ -58,6 +60,7 @@ Nur für die Moderation. Die Teilnehmenden arbeiten mit der [README.md](README.m
 | Copilot baut etwas Falsches | Mit **Rückgängig** im Chat bzw. in der Quellcodeverwaltung verwerfen und die Anfrage genauer stellen. Das ist ein guter Lernmoment. |
 | Jemand hängt bei Stufe 1 fest | Musterlösung holen: `git checkout loesung -- bericht.py dashboard.py test_bericht.py` |
 | Jemand hängt bei Stufe 3 fest | `git checkout loesung -- praesentation.py .github/workflows/bericht.yml` |
+| Im Tab Actions steht „There are no workflow runs yet“ | Beim allerersten Hochladen in ein neues Repository startet GitHub manchmal keinen Lauf (beim Test am 06.10.2026 so passiert). Links auf **Bericht erstellen** und dann **Run workflow** klicken, oder einfach die nächste Änderung pushen. Ab da startet er zuverlässig. |
 | Actions-Lauf bleibt gelb/wartet | Kein Runner verfügbar. Lokal mit den Aufgaben 1–3 weiterarbeiten und den Lauf im Moderations-Repository zeigen. |
 | Actions gar nicht verfügbar | Stufe 2 lokal: Excel in `daten/` ersetzen, Aufgabe „1 · Dashboard erstellen“. Automatisierung nur zeigen. |
 | Falsche Datei hochgeladen | Einfach die richtige Datei aus `beispieldaten/…/projekte.xlsx` erneut hochladen. Unter **Commits** bleibt jede vorige Version sichtbar. |
