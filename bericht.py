@@ -65,11 +65,13 @@ def berechnen(df):
     """Berechnet die Kennzahlen. Neue Kennzahlen werden hier ergänzt."""
     plan = df["Plan_Stunden"].sum()
     ist = df["Ist_Stunden"].sum()
+    ueber_plan = int((df["Ist_Stunden"] > df["Plan_Stunden"]).sum())
     return {
         "anzahl_projekte": len(df),
         "plan_stunden": plan,
         "ist_stunden": ist,
         "abweichung": ist - plan,
+        "ueber_plan": ueber_plan,
         "ausschoepfung": ist / plan if plan else None,  # z. B. 0.93 = 93 % des Plans verbraucht
         "datenstand": pd.to_datetime(df["Datenstand"].iloc[0]).strftime("%d.%m.%Y"),
     }

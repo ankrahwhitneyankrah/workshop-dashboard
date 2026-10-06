@@ -28,6 +28,7 @@ AUSGABE = ORDNER / "ausgabe" / "dashboard.html"
 KARTEN = [
     # Schlüssel aus berechnen()  Titel             Erklärung                      Format
     ("anzahl_projekte",          "Projekte",       "in der Auswahl",              "zahl"),
+    ("ueber_plan",               "Über Plan",      "Projekte mit Ist > Plan",     "zahl"),
     ("plan_stunden",             "Plan-Stunden",   "Summe der Planung",           "stunden"),
     ("ist_stunden",              "Ist-Stunden",    "Summe des Aufwands",          "stunden"),
     ("abweichung",               "Abweichung",     "Ist minus Plan",              "abweichung"),

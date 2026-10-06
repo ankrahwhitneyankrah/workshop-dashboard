@@ -28,8 +28,24 @@ def test_kennzahlen_stimmen():
     assert k["plan_stunden"] == 60
     assert k["ist_stunden"] == 42
     assert k["abweichung"] == -18
+    assert k["ueber_plan"] == 1
     assert k["ausschoepfung"] == pytest.approx(0.7)  # 42 von 60 Stunden
     assert k["datenstand"] == "01.09.2026"
+
+
+def test_ueber_plan_wird_richtig_gezaehlt():
+    """Vier Projekte, von Hand nachgerechnet: 2 Projekte sind über Plan."""
+    df = pd.DataFrame({
+        "Projekt": ["A", "B", "C", "D"],
+        "Bereich": ["IT", "IT", "Personal", "Einkauf"],
+        "Status": ["laufend", "geplant", "abgeschlossen", "laufend"],
+        "Plan_Stunden": [10, 20, 30, 5],
+        "Ist_Stunden": [12, 20, 31, 4],
+        "Datenstand": [pd.Timestamp("2026-09-01")] * 4,
+    })
+
+    k = berechnen(df)
+    assert k["ueber_plan"] == 2
 
 
 def test_gueltige_daten_werden_akzeptiert():
