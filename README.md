@@ -75,7 +75,8 @@ daten/projekte.xlsx ──► bericht.py (prüfen + rechnen) ──► dashboard
 2. Im Copilot-Chat `/folie-ergaenzen` eingeben: *Tabelle der Projekte über Plan*. Ergebnis prüfen, dann **Keep**.
 3. In `.github/workflows/bericht.yml` den Schritt „Präsentation erstellen“ einkommentieren (oder Copilot darum bitten).
 4. Committen und pushen. GitHub liefert jetzt Dashboard **und** PowerPoint.
-5. Zahlen auf den Folien mit dem Dashboard vergleichen. Die Aussage auf der letzten Folie formuliert ihr selbst.
+5. Zahlen auf den Folien mit dem Dashboard vergleichen. Die Aussage auf der Folie „Einordnung und nächste Schritte“ formuliert ihr selbst.
+   **Sollwert** (Datenstand 15.09.2026 aus Stufe 2): **4 Projekte liegen über Plan**: Rechnungsprüfung +20 h, Kundenportal, Schichtplanung und Reisekosten je +5 h.
 
 ## Auf eigene Daten übertragen
 
