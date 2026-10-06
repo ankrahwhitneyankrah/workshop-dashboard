@@ -32,6 +32,11 @@ def test_kennzahlen_stimmen():
     assert k["datenstand"] == "01.09.2026"
 
 
+def test_projekte_ueber_plan():
+    # Nur Projekt A liegt über Plan (12 > 10), B und C nicht.
+    assert berechnen(beispiel())["projekte_ueber_plan"] == 1
+
+
 def test_gueltige_daten_werden_akzeptiert():
     pruefen(beispiel())  # darf keinen Fehler auslösen
 

@@ -32,6 +32,7 @@ KARTEN = [
     ("ist_stunden",              "Ist-Stunden",    "Summe des Aufwands",          "stunden"),
     ("abweichung",               "Abweichung",     "Ist minus Plan",              "abweichung"),
     ("ausschoepfung",            "Ausschöpfung",   "Anteil des Plans verbraucht", "prozent"),
+    ("projekte_ueber_plan",      "Über Plan",      "Projekte mit Ist > Plan",     "zahl"),
 ]
 
 

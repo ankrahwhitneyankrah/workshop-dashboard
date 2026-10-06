@@ -456,6 +456,28 @@ def folie_projekte(rahmen, df, k, quelle):
                        "Tabelle und können für Ergänzungen bearbeitet werden. Die Quelldatei bleibt maßgeblich.")
 
 
+def folie_ueber_plan(rahmen, df, k, quelle):
+    ueber = df[df["Ist_Stunden"] > df["Plan_Stunden"]]
+    ueber = ueber.assign(Abweichung=ueber["Ist_Stunden"] - ueber["Plan_Stunden"]).sort_values("Abweichung", ascending=False)
+    anzahl = k["projekte_ueber_plan"]
+    folie = rahmen.inhaltsfolie(f"{anzahl} {'Projekt liegt' if anzahl == 1 else 'Projekte liegen'} über Plan",
+                                "Ist größer als Plan", quelle)
+    if ueber.empty:
+        textfeld(folie, RAND, OBEN, BREITE, 0.6, "Kein Projekt liegt über Plan.", groesse=18)
+    else:
+        zeilen = [(z["Projekt"], z["Bereich"], zahl(z["Plan_Stunden"]), zahl(z["Ist_Stunden"]),
+                   zahl(z["Abweichung"], vorzeichen=True)) for _, z in ueber.iterrows()]
+        tabelle(folie, ["Projekt", "Bereich", "Plan h", "Ist h", "Abweichung h"], zeilen,
+                RAND, OBEN, SEITE_X - RAND - 0.45, spaltenbreiten=[3, 2, 1.2, 1.2, 1.5], rechtsbuendig={2, 3, 4},
+                zeilenhoehe=0.42, schrift=14)
+    erklaerspalte(folie, "So lesen", [
+        "Projekte, bei denen mehr Stunden gebucht als geplant sind.",
+        "Sortiert nach der größten Überschreitung.",
+        "Ursachen gehören auf die Folie „Einordnung und nächste Schritte“.",
+    ])
+    notizen(folie, "Kennzahl „Projekte über Plan“ aus bericht.py: Anzahl Projekte mit Ist-Stunden größer als Plan-Stunden.")
+
+
 def folie_aussage(rahmen, df, k, quelle):
     folie = rahmen.inhaltsfolie("Einordnung und nächste Schritte", "Von euch zu ergänzen", quelle)
     breite_links = 5.6
@@ -530,6 +552,7 @@ def main():
     folie_abweichung(rahmen, df, k, quelle)
     folie_bereiche(rahmen, df, k, quelle)
     folie_projekte(rahmen, df, k, quelle)
+    folie_ueber_plan(rahmen, df, k, quelle)
     folie_aussage(rahmen, df, k, quelle)
     folie_methodik(rahmen, df, k, quelle)
 

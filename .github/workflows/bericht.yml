@@ -38,9 +38,9 @@ jobs:
       - name: Dashboard erstellen (prüft auch die Excel-Datei)
         run: python dashboard.py
 
-      # Stufe 3: Die nächsten zwei Zeilen einkommentieren (jeweils "# " am Anfang entfernen)
-      # - name: Präsentation erstellen
-      #   run: python praesentation.py
+      # Stufe 3: Präsentation aus denselben Zahlen
+      - name: Präsentation erstellen
+        run: python praesentation.py
 
       - name: Ergebnis zum Download ablegen
         uses: actions/upload-artifact@v4
