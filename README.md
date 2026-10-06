@@ -24,7 +24,10 @@ daten/projekte.xlsx ──► bericht.py (prüfen + rechnen) ──► dashboard
 
 ## Start (einmalig)
 
-1. Diesen Ordner in VS Code öffnen (**Datei → Ordner öffnen**).
+0. Auf GitHub im Vorlage-Repository **Use this template → Create a new repository** wählen, als Sichtbarkeit **Private**. Dann in VS Code **Quellcodeverwaltung → Repository klonen** und euer neues Repository auswählen.
+   Beim ersten Mal im Terminal Namen und E-Mail für Git hinterlegen:
+   `git config --global user.name "Vorname Nachname"` und `git config --global user.email "eure-github-adresse"`
+1. Diesen Ordner in VS Code öffnen (**Datei → Ordner öffnen**), falls er nicht schon offen ist.
 2. **Terminal → Aufgabe ausführen → „Pakete installieren (einmalig)“**.
 3. **Terminal → Aufgabe ausführen → „2 · Alles prüfen (Tests)“**. Erwartung: alles grün, `passed`.
 

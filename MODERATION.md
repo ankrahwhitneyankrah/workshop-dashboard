@@ -28,8 +28,11 @@ Nur für die Moderation. Die Teilnehmenden arbeiten mit der [README.md](README.m
 
 ## Vor dem Workshop (blockierend)
 
-- [ ] **GitHub:** Klären, ob ihr github.com mit Enterprise-Konto oder GitHub Enterprise Server nutzt und ob Teilnehmende Repositories anlegen dürfen.
-- [ ] **Repository anlegen:** Dieses Projekt als Repository hochladen, beide Zweige pushen (`git push -u origin main loesung`). Unter **Settings** das Häkchen **Template repository** setzen. Dann erzeugt jede Person mit **Use this template** ihr eigenes Repository.
+- [x] **GitHub:** Es werden normale, kostenlose Konten auf github.com genutzt.
+- [ ] **Konten der Teilnehmenden:** Spätestens eine Woche vorher alle bitten, ein GitHub-Konto anzulegen, die E-Mail-Adresse zu bestätigen und den Benutzernamen zu schicken. Am Workshop-Tag kostet das sonst 15 Minuten.
+- [ ] **Vorlage-Repository:** Dieses Projekt hochladen und beide Zweige pushen. Unter **Settings** das Häkchen **Template repository** setzen. Das Vorlage-Repository muss **öffentlich** sein, damit Personen mit eigenen Konten **Use this template** nutzen können. Das ist in Ordnung, weil es nur erfundene Daten enthält. Die Kopien der Teilnehmenden sind **privat**.
+- [ ] **Copilot-Zugang:** Mit einem privaten Konto gibt es Copilot Free mit einer monatlichen Obergrenze an Chat- und Agent-Anfragen. Vorab prüfen, ob die Teilnehmenden über das Unternehmen eine Copilot-Lizenz haben, die mit ihrem Konto verknüpft ist. Falls nur Copilot Free: Die Grenze reicht für den Workshop vermutlich, aber nicht für viel Ausprobieren davor. Bitte an die Teilnehmenden: Copilot vor dem Termin nicht aufbrauchen.
+- [ ] **Actions-Minuten:** Private Repositories haben 2.000 kostenlose Minuten im Monat. Ein Lauf dauert etwa 1 Minute, das reicht reichlich.
 - [ ] **Actions:** Einmal einen Push machen und prüfen, ob der Lauf grün wird. Wird `pip install` blockiert, mit der IT den internen Paket-Spiegel klären.
 - [ ] **Copilot:** In VS Code prüfen, ob der Agent-Modus verfügbar ist und `/kennzahl-ergaenzen` im Chat erscheint.
 - [ ] **Teilnehmerrechner:** Python, Git und VS Code installiert? Aufgabe „Pakete installieren“ funktioniert? Einmal auf einem fremden Gerät durchspielen.
