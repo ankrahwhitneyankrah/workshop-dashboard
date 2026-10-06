@@ -1,5 +1,7 @@
 # Workshop: Von der Excel zum Dashboard und zur PowerPoint
 
+![Bericht erstellen](../../actions/workflows/bericht.yml/badge.svg)
+
 Aus einer Excel-Datei entstehen in drei Stufen ein Dashboard, eine automatische Aktualisierung und eine PowerPoint. Alle Daten sind erfunden.
 
 ```
