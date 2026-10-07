@@ -59,8 +59,11 @@ Jeden Monat kommt eine neue Excel-Datei in den Ordner `daten/`. GitHub prüft si
 | 14:05 | Pause | | |
 | 14:20 | **Stufe 2** | Workflow-Datei kurz erklären (Copilot fragen: „Erkläre mir bericht.yml“) | README Stufe 2, Schritte 1–5 |
 | 15:15 | **Stufe 3** | Prompt-Dateien und Projektregeln zeigen | README Stufe 3, Schritte 1–5 |
-| 16:05 | Transfer | Checkliste zeigen, durch den Raum gehen. Bezug: eigene Fälle mit regelmäßigen Exporten, z. B. monatliche Nutzungszahlen oder Umfrageergebnisse | Eigene Kennzahl oder eigene Spalten |
-| 16:45 | Abschluss | Ausblick: Jira, SharePoint/Power Automate, Power BI, Teams, Coding Agent | Nächsten Einsatz notieren |
+| 16:00 | **Stufe 4** | Zwei Welten erklären (GitHub zum Lernen, Teams für echte Daten), Nachricht mit @alle vorführen | README Stufe 4, `ANLEITUNG_TEAMS.md` |
+| 16:35 | Transfer | Checkliste zeigen, durch den Raum gehen. Bezug: eigene Fälle mit regelmäßigen Exporten, z. B. monatliche Nutzungszahlen oder Umfrageergebnisse | Eigene Kennzahl oder eigene Spalten |
+| 17:05 | Abschluss | Fall-Sprint ankündigen. Ausblick: Jira, Power BI, Coding Agent | Nächsten Einsatz notieren |
+
+Puffer bis 17:45.
 
 ## Wenn etwas schiefgeht
 
