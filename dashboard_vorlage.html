@@ -2,7 +2,9 @@
 <!--
   Vorlage für das Dashboard: Aussehen und Bedienung.
   dashboard.py setzt an der Stelle __DATEN__ die geprüften Daten und Kennzahlen ein.
-  Hier wird nichts berechnet, was eine Kennzahl ist - die kommen alle aus bericht.py.
+  Kennzahlen (Kacheln, Monatsverlauf, Veränderung zum Vormonat) kommen alle aus bericht.py.
+  Hier werden nur für die Diagramme und die Tabelle die geprüften Zeilen je Projekt
+  oder Bereich addiert.
 -->
 <html lang="de">
 <head>
@@ -85,6 +87,7 @@
   .kachel .titel { font-size: 13px; color: var(--text-2); }
   .kachel .wert { font-size: 30px; font-weight: 650; line-height: 1.2; margin: 6px 0 2px; letter-spacing: -0.01em; }
   .kachel .erklaerung { font-size: 12px; color: var(--leise); }
+  .kachel .veraenderung { font-size: 12px; color: var(--text-2); margin-top: 4px; font-variant-numeric: tabular-nums; }
   .meter { height: 6px; border-radius: 3px; background: var(--meter-spur); margin: 10px 0 6px; overflow: hidden; }
   .meter div { height: 100%; border-radius: 0 3px 3px 0; background: var(--serie); }
   .meter.ueber div { background: var(--kritisch); }
@@ -95,6 +98,23 @@
   .karte-kopf { display: flex; flex-wrap: wrap; gap: 12px; justify-content: space-between; align-items: flex-start; margin-bottom: 14px; }
   .legende { display: flex; flex-wrap: wrap; gap: 16px; font-size: 12px; color: var(--text-2); margin: -4px 0 12px; }
   .legende i { display: inline-block; vertical-align: -1px; margin-right: 6px; border-radius: 2px; }
+
+  /* Entwicklung je Monat (Säulen, klickbar) */
+  .verlauf { display: flex; align-items: flex-end; gap: 12px; height: 220px; padding-top: 22px; border-bottom: 1px solid var(--achse); }
+  .monat { flex: 1 1 0; min-width: 0; height: 100%; display: flex; align-items: flex-end; justify-content: center; gap: 6px;
+           border: 0; background: none; padding: 0 4px; border-radius: 8px 8px 0 0; cursor: pointer; }
+  .monat:hover, .monat:focus-visible { background: var(--waschung); outline: none; }
+  .saeule { position: relative; width: min(44px, 40%); border-radius: 4px 4px 0 0; }
+  .saeule.plan { background: var(--plan-spur); }
+  .saeule.ist { background: var(--serie); }
+  .saeule.ist.ueber { background: var(--kritisch); }
+  .saeule b { position: absolute; bottom: 100%; left: 50%; transform: translateX(-50%); padding-bottom: 3px;
+              font-size: 12px; font-weight: 600; white-space: nowrap; font-variant-numeric: tabular-nums; }
+  .monat.gedimmt .saeule { opacity: 0.35; }
+  .monatsnamen { display: flex; gap: 12px; }
+  .monatsnamen span { flex: 1 1 0; min-width: 0; text-align: center; font-size: 13px; color: var(--text-2); padding-top: 6px;
+                      overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .monatsnamen span.aktiv { color: var(--text); font-weight: 600; }
 
   /* Plan-/Ist-Balken je Projekt */
   .zeile { display: grid; grid-template-columns: 150px minmax(0, 1fr) 132px; gap: 12px; align-items: center;
@@ -180,12 +200,28 @@
 
   <div class="filter" role="group" aria-label="Filter">
     <label class="feld"><span>Bereich</span><select id="filter-bereich"></select></label>
-    <div class="feld"><span>Status</span><div class="segmente" id="filter-status" role="group" aria-label="Status"></div></div>
+    <div class="feld"><span>Monat</span><div class="segmente" id="filter-monat" role="group" aria-label="Monat"></div></div>
     <button class="link" id="zuruecksetzen" type="button">Filter zurücksetzen</button>
     <span class="auswahl" id="auswahl-info" aria-live="polite"></span>
   </div>
 
   <div class="karten" id="karten"></div>
+
+  <section class="karte" style="margin-bottom:16px">
+    <div class="karte-kopf">
+      <div>
+        <h2>Entwicklung je Monat</h2>
+        <p class="leise">Jede Monatsdatei ist eine Säule. Auf einen Monat klicken, um danach zu filtern</p>
+      </div>
+    </div>
+    <div class="legende">
+      <span><i style="width:10px;height:10px;background:var(--plan-spur)"></i>Plan</span>
+      <span><i style="width:10px;height:10px;background:var(--serie)"></i>Ist</span>
+      <span><i style="width:10px;height:10px;background:var(--kritisch)"></i>Ist über Plan</span>
+    </div>
+    <div class="verlauf" id="verlauf"></div>
+    <div class="monatsnamen" id="monatsnamen"></div>
+  </section>
 
   <div class="raster">
     <section class="karte">
@@ -244,12 +280,13 @@ const DATEN = __DATEN__;
 "use strict";
 
 const ALLE = "Alle";
-const zustand = { bereich: ALLE, status: ALLE, sortierung: "abweichung", suche: "", tabelleSpalte: "Abweichung", tabelleAuf: false };
+const zustand = { bereich: ALLE, monat: ALLE, sortierung: "abweichung", suche: "", tabelleSpalte: "Abweichung", tabelleAuf: false };
 
 const zahlFormat = new Intl.NumberFormat("de-DE", { maximumFractionDigits: 0 });
 const z = (w) => zahlFormat.format(w);
 const mitVorzeichen = (w) => (w > 0 ? "+" : w < 0 ? "−" : "±") + z(Math.abs(w));
 const prozent = (w) => z(w * 100) + " %";
+const monatsName = (schluessel) => (DATEN.monate.find((m) => m.schluessel === schluessel) || {}).name || schluessel;
 
 function el(tag, klasse, text) {
   const e = document.createElement(tag);
@@ -259,13 +296,25 @@ function el(tag, klasse, text) {
 }
 
 /* ---------- Auswahl ---------- */
-function gefilterteZeilen(ohneBereich) {
+function gefilterteZeilen(ohneBereich, ohneMonat) {
   return DATEN.zeilen.filter((r) =>
     (ohneBereich || zustand.bereich === ALLE || r.Bereich === zustand.bereich) &&
-    (zustand.status === ALLE || r.Status === zustand.status));
+    (ohneMonat || zustand.monat === ALLE || r.Monat === zustand.monat));
 }
-function aktuelleKennzahlen() {
-  return DATEN.kennzahlen[zustand.bereich + "|" + zustand.status];
+function kennzahlen(bereich, monat) {
+  return DATEN.kennzahlen[bereich + "|" + monat];
+}
+
+/* Fasst die Monatszeilen je Projekt zusammen: Stunden addiert, Status aus dem letzten Monat */
+function jeProjekt(zeilen) {
+  const projekte = new Map();
+  for (const r of [...zeilen].sort((a, b) => a.Monat.localeCompare(b.Monat))) {
+    const p = projekte.get(r.Projekt) || { Projekt: r.Projekt, Plan_Stunden: 0, Ist_Stunden: 0, Monate: 0 };
+    p.Bereich = r.Bereich; p.Status = r.Status;
+    p.Plan_Stunden += r.Plan_Stunden; p.Ist_Stunden += r.Ist_Stunden; p.Monate += 1;
+    projekte.set(r.Projekt, p);
+  }
+  return [...projekte.values()];
 }
 
 /* ---------- Tooltip ---------- */
@@ -309,7 +358,7 @@ function baueFilter() {
   }
   auswahl.addEventListener("change", () => { zustand.bereich = auswahl.value; zeichne(); });
   document.getElementById("zuruecksetzen").addEventListener("click", () => {
-    zustand.bereich = ALLE; zustand.status = ALLE; zustand.suche = "";
+    zustand.bereich = ALLE; zustand.monat = ALLE; zustand.suche = "";
     document.getElementById("suche").value = ""; zeichne();
   });
   const sortierung = document.getElementById("sortierung");
@@ -322,38 +371,43 @@ function baueFilter() {
   document.getElementById("csv").addEventListener("click", csvHerunterladen);
 }
 
-function zeichneStatusFilter() {
-  const ziel = document.getElementById("filter-status");
+function zeichneMonatsFilter() {
+  const ziel = document.getElementById("filter-monat");
   ziel.replaceChildren();
-  const basis = DATEN.zeilen.filter((r) => zustand.bereich === ALLE || r.Bereich === zustand.bereich);
-  for (const s of [ALLE, ...DATEN.status]) {
-    const anzahl = s === ALLE ? basis.length : basis.filter((r) => r.Status === s).length;
-    const k = el("button", null, s === ALLE ? "Alle" : s);
+  for (const m of [{ schluessel: ALLE, name: "Alle Monate" }, ...DATEN.monate]) {
+    const k = el("button", null, m.name);
     k.type = "button";
-    k.setAttribute("aria-pressed", String(zustand.status === s));
-    k.appendChild(el("span", "anzahl", String(anzahl)));
-    k.addEventListener("click", () => { zustand.status = s; zeichne(); });
+    k.setAttribute("aria-pressed", String(zustand.monat === m.schluessel));
+    k.addEventListener("click", () => { zustand.monat = m.schluessel; zeichne(); });
     ziel.appendChild(k);
   }
 }
 
 /* ---------- Kennzahlen-Kacheln ---------- */
+function formatiere(wert, format) {
+  if (format === "stunden") return z(wert) + " h";
+  if (format === "abweichung") return mitVorzeichen(wert) + " h";
+  if (format === "prozent") return prozent(wert);
+  return z(wert);
+}
+function formatiereVeraenderung(wert, format) {
+  const pfeil = wert > 0 ? "▲ " : wert < 0 ? "▼ " : "";
+  if (format === "prozent") return pfeil + mitVorzeichen(wert * 100) + " Prozentpunkte";
+  if (format === "stunden" || format === "abweichung") return pfeil + mitVorzeichen(wert) + " h";
+  return pfeil + mitVorzeichen(wert);
+}
+
 function zeichneKarten() {
   const ziel = document.getElementById("karten");
   ziel.replaceChildren();
-  const k = aktuelleKennzahlen();
+  const k = kennzahlen(zustand.bereich, zustand.monat);
+  const vergleich = DATEN.vergleich[zustand.bereich + "|" + zustand.monat];
   for (const karte of DATEN.karten) {
     const kachel = el("div", "kachel");
     kachel.appendChild(el("div", "titel", karte.titel));
     const wert = k ? k[karte.schluessel] : null;
-    let text = "–";
-    if (wert !== null && wert !== undefined) {
-      if (karte.format === "stunden") text = z(wert) + " h";
-      else if (karte.format === "abweichung") text = mitVorzeichen(wert) + " h";
-      else if (karte.format === "prozent") text = prozent(wert);
-      else text = z(wert);
-    }
-    kachel.appendChild(el("div", "wert", text));
+    const vorhanden = wert !== null && wert !== undefined;
+    kachel.appendChild(el("div", "wert", vorhanden ? formatiere(wert, karte.format) : "–"));
     if (karte.format === "prozent" && typeof wert === "number") {
       const meter = el("div", "meter" + (wert > 1 ? " ueber" : ""));
       const fuellung = el("div"); fuellung.style.width = Math.min(wert, 1) * 100 + "%";
@@ -361,18 +415,60 @@ function zeichneKarten() {
       meter.appendChild(fuellung); kachel.appendChild(meter);
     }
     kachel.appendChild(el("div", "erklaerung", karte.erklaerung));
+    const differenz = vergleich ? vergleich.werte[karte.schluessel] : undefined;
+    if (typeof differenz === "number") {
+      kachel.appendChild(el("div", "veraenderung", formatiereVeraenderung(differenz, karte.format) + " ggü. " + vergleich.vormonat));
+    }
     ziel.appendChild(kachel);
   }
 }
 
+/* ---------- Entwicklung je Monat ---------- */
+function zeichneVerlauf() {
+  const ziel = document.getElementById("verlauf");
+  const namen = document.getElementById("monatsnamen");
+  ziel.replaceChildren(); namen.replaceChildren();
+  const werte = DATEN.monate.map((m) => [m, kennzahlen(zustand.bereich, m.schluessel)]);
+  const groesster = Math.max(...werte.map(([, k]) => (k ? Math.max(k.plan_stunden, k.ist_stunden) : 0)), 1);
+
+  for (const [m, k] of werte) {
+    const aktiv = zustand.monat === m.schluessel;
+    const knopf = el("button", "monat" + (zustand.monat !== ALLE && !aktiv ? " gedimmt" : ""));
+    knopf.type = "button";
+    knopf.setAttribute("aria-pressed", String(aktiv));
+    const plan = k ? k.plan_stunden : 0, ist = k ? k.ist_stunden : 0;
+    knopf.setAttribute("aria-label", `${m.name}: Ist ${z(ist)} von ${z(plan)} Stunden geplant. ${aktiv ? "Filter aufheben" : "Danach filtern"}`);
+    const saeulePlan = el("span", "saeule plan"); saeulePlan.style.height = (plan / groesster) * 100 + "%";
+    const saeuleIst = el("span", "saeule ist" + (ist > plan ? " ueber" : "")); saeuleIst.style.height = (ist / groesster) * 100 + "%";
+    saeuleIst.appendChild(el("b", null, z(ist)));
+    knopf.append(saeulePlan, saeuleIst);
+    knopf.addEventListener("click", () => { zustand.monat = aktiv ? ALLE : m.schluessel; versteckeTooltip(); zeichne(); });
+    mitTooltip(knopf, () => {
+      if (!k) return [m.name, [["Keine Projekte in dieser Auswahl", ""]]];
+      const zeilen = [
+        ["Plan", z(plan) + " h", "var(--achse)"],
+        ["Ist", z(ist) + " h", ist > plan ? "var(--kritisch)" : "var(--serie)"],
+        ["Abweichung", mitVorzeichen(k.abweichung) + " h"],
+        ["Ausschöpfung", k.ausschoepfung === null ? "–" : prozent(k.ausschoepfung)],
+        ["Projekte", z(k.anzahl_projekte)],
+      ];
+      const v = DATEN.vergleich[zustand.bereich + "|" + m.schluessel];
+      if (v) zeilen.push(["Ist ggü. " + v.vormonat, formatiereVeraenderung(v.werte.ist_stunden, "stunden")]);
+      return [m.name, zeilen];
+    });
+    ziel.appendChild(knopf);
+    namen.appendChild(el("span", aktiv ? "aktiv" : null, m.name));
+  }
+}
+
 /* ---------- Plan und Ist je Projekt ---------- */
-function zeichneProjekte(zeilen) {
+function zeichneProjekte(projekte) {
   const ziel = document.getElementById("projekte");
   ziel.replaceChildren();
   for (const k of document.querySelectorAll("#sortierung button")) k.setAttribute("aria-pressed", String(k.dataset.wert === zustand.sortierung));
-  if (!zeilen.length) { ziel.appendChild(el("p", "leer", "Keine Projekte in dieser Auswahl.")); return; }
+  if (!projekte.length) { ziel.appendChild(el("p", "leer", "Keine Projekte in dieser Auswahl.")); return; }
 
-  const sortiert = [...zeilen].sort((a, b) =>
+  const sortiert = [...projekte].sort((a, b) =>
     zustand.sortierung === "name" ? a.Projekt.localeCompare(b.Projekt, "de") :
     zustand.sortierung === "ist" ? b.Ist_Stunden - a.Ist_Stunden :
     (b.Ist_Stunden - b.Plan_Stunden) - (a.Ist_Stunden - a.Plan_Stunden));
@@ -407,7 +503,8 @@ function zeichneProjekte(zeilen) {
       ["Ist", z(r.Ist_Stunden) + " h", ueber ? "var(--kritisch)" : "var(--serie)"],
       ["Abweichung", mitVorzeichen(r.Ist_Stunden - r.Plan_Stunden) + " h"],
       ["Ausschöpfung", r.Plan_Stunden ? prozent(r.Ist_Stunden / r.Plan_Stunden) : "–"],
-      ["Status", r.Status],
+      ["Status (zuletzt)", r.Status],
+      ["Monate", z(r.Monate)],
     ]]);
     ziel.appendChild(zeile);
   }
@@ -417,7 +514,7 @@ function zeichneProjekte(zeilen) {
 function zeichneBereiche() {
   const ziel = document.getElementById("bereiche");
   ziel.replaceChildren();
-  const zeilen = gefilterteZeilen(true);  // Status-Filter gilt, Bereich bleibt auswählbar
+  const zeilen = gefilterteZeilen(true, false);  // Monats-Filter gilt, Bereich bleibt auswählbar
   const summen = new Map();
   for (const r of zeilen) summen.set(r.Bereich, (summen.get(r.Bereich) || 0) + r.Ist_Stunden);
   const liste = [...summen.entries()].sort((a, b) => b[1] - a[1]);
@@ -437,7 +534,7 @@ function zeichneBereiche() {
     halter.appendChild(balken); knopf.appendChild(halter);
     knopf.appendChild(el("span", "zahl", z(summe) + " h"));
     knopf.addEventListener("click", () => { zustand.bereich = aktiv ? ALLE : bereich; versteckeTooltip(); zeichne(); });
-    const anzahl = zeilen.filter((r) => r.Bereich === bereich).length;
+    const anzahl = new Set(zeilen.filter((r) => r.Bereich === bereich).map((r) => r.Projekt)).size;
     mitTooltip(knopf, () => [bereich, [
       ["Ist-Stunden", z(summe) + " h", "var(--serie)"],
       ["Anteil", gesamt ? prozent(summe / gesamt) : "–"],
@@ -451,7 +548,8 @@ function zeichneBereiche() {
 const SPALTEN = [
   { titel: "Projekt", wert: (r) => r.Projekt },
   { titel: "Bereich", wert: (r) => r.Bereich },
-  { titel: "Status", wert: (r) => r.Status },
+  { titel: "Status (zuletzt)", wert: (r) => r.Status },
+  { titel: "Monate", wert: (r) => r.Monate, zahl: true },
   { titel: "Plan (h)", wert: (r) => r.Plan_Stunden, zahl: true },
   { titel: "Ist (h)", wert: (r) => r.Ist_Stunden, zahl: true },
   { titel: "Abweichung", wert: (r) => r.Ist_Stunden - r.Plan_Stunden, zahl: true },
@@ -460,7 +558,7 @@ const SPALTEN = [
 
 function tabellenZeilen() {
   const spalte = SPALTEN.find((s) => s.titel === zustand.tabelleSpalte) || SPALTEN[0];
-  return gefilterteZeilen(false)
+  return jeProjekt(gefilterteZeilen(false, false))
     .filter((r) => !zustand.suche || r.Projekt.toLowerCase().includes(zustand.suche))
     .sort((a, b) => {
       const x = spalte.wert(a), y = spalte.wert(b);
@@ -486,7 +584,8 @@ function zeichneTabelle() {
   const inhalt = document.getElementById("tabelle-inhalt");
   inhalt.replaceChildren();
   const zeilen = tabellenZeilen();
-  document.getElementById("tabelle-info").textContent = `${zeilen.length} ${zeilen.length === 1 ? "Projekt" : "Projekte"} angezeigt`;
+  const monat = zustand.monat === ALLE ? "über alle Monate summiert" : "im " + monatsName(zustand.monat);
+  document.getElementById("tabelle-info").textContent = `${zeilen.length} ${zeilen.length === 1 ? "Projekt" : "Projekte"} angezeigt, Stunden ${monat}`;
   if (!zeilen.length) {
     const tr = el("tr"); const td = el("td", "leer", "Keine passenden Projekte."); td.colSpan = SPALTEN.length;
     tr.appendChild(td); inhalt.appendChild(tr); return;
@@ -498,6 +597,7 @@ function zeichneTabelle() {
     tr.appendChild(el("td", null, r.Projekt));
     tr.appendChild(el("td", null, r.Bereich));
     const tdStatus = el("td"); tdStatus.appendChild(el("span", "status", r.Status)); tr.appendChild(tdStatus);
+    tr.appendChild(el("td", "r", z(r.Monate)));
     tr.appendChild(el("td", "r", z(r.Plan_Stunden)));
     tr.appendChild(el("td", "r", z(r.Ist_Stunden)));
     tr.appendChild(el("td", "r", mitVorzeichen(abw) + " h"));
@@ -514,34 +614,39 @@ function zeichneTabelle() {
 
 function csvHerunterladen() {
   const zellen = (w) => '"' + String(w).replace(/"/g, '""') + '"';
-  const zeilen = [["Projekt", "Bereich", "Status", "Plan_Stunden", "Ist_Stunden", "Abweichung"].join(";")];
+  const zeilen = [["Projekt", "Bereich", "Status_zuletzt", "Monate", "Plan_Stunden", "Ist_Stunden", "Abweichung"].join(";")];
   for (const r of tabellenZeilen()) {
-    zeilen.push([zellen(r.Projekt), zellen(r.Bereich), zellen(r.Status), r.Plan_Stunden, r.Ist_Stunden, r.Ist_Stunden - r.Plan_Stunden].join(";"));
+    zeilen.push([zellen(r.Projekt), zellen(r.Bereich), zellen(r.Status), r.Monate, r.Plan_Stunden, r.Ist_Stunden, r.Ist_Stunden - r.Plan_Stunden].join(";"));
   }
   const blob = new Blob(["﻿" + zeilen.join("\r\n")], { type: "text/csv;charset=utf-8" });
   const a = document.createElement("a");
   a.href = URL.createObjectURL(blob);
-  a.download = "projektstatus_" + DATEN.datenstand.split(".").reverse().join("-") + ".csv";
+  a.download = "projektstatus_" + (zustand.monat === ALLE ? "alle_monate" : zustand.monat) + ".csv";
   document.body.appendChild(a); a.click(); a.remove();
   setTimeout(() => URL.revokeObjectURL(a.href), 1000);
 }
 
 /* ---------- Alles zeichnen ---------- */
 function zeichne() {
-  const zeilen = gefilterteZeilen(false);
+  const projekte = jeProjekt(gefilterteZeilen(false, false));
+  const gesamt = new Set(DATEN.zeilen.map((r) => r.Projekt)).size;
   document.getElementById("filter-bereich").value = zustand.bereich;
-  document.getElementById("zuruecksetzen").disabled = zustand.bereich === ALLE && zustand.status === ALLE && !zustand.suche;
-  document.getElementById("auswahl-info").textContent = `${zeilen.length} von ${DATEN.zeilen.length} Projekten ausgewählt`;
-  zeichneStatusFilter();
+  document.getElementById("zuruecksetzen").disabled = zustand.bereich === ALLE && zustand.monat === ALLE && !zustand.suche;
+  const monat = zustand.monat === ALLE ? DATEN.zeitraum : monatsName(zustand.monat);
+  document.getElementById("auswahl-info").textContent = `${projekte.length} von ${gesamt} Projekten · ${monat}`;
+  zeichneMonatsFilter();
   zeichneKarten();
-  zeichneProjekte(zeilen);
+  zeichneVerlauf();
+  zeichneProjekte(projekte);
   zeichneBereiche();
   zeichneTabelle();
 }
 
-document.getElementById("unterzeile").textContent = `Datenstand ${DATEN.datenstand} · erstellt am ${DATEN.erstellt}`;
-document.getElementById("pruefung-detail").textContent = `${DATEN.zeilen.length} Zeilen · 0 Fehler`;
-document.getElementById("fusszeile").textContent = `Automatisch erzeugt aus ${DATEN.quelle} · synthetische Workshopdaten`;
+document.getElementById("unterzeile").textContent = `${DATEN.zeitraum} · erstellt am ${DATEN.erstellt}`;
+const pruefung = document.getElementById("pruefung-detail");
+pruefung.textContent = `${DATEN.dateien.length} Monatsdateien · ${DATEN.zeilen.length} Zeilen · 0 Fehler`;
+pruefung.parentElement.title = "Automatisch geprüft vor der Berechnung:\n" + DATEN.dateien.map((d) => "daten/" + d).join("\n");
+document.getElementById("fusszeile").textContent = `Automatisch erzeugt aus ${DATEN.dateien.length} Monatsdateien im Ordner daten/ · synthetische Workshopdaten`;
 baueFilter();
 zeichne();
 </script>

@@ -1,4 +1,4 @@
-"""Stufe 3: Erstellt aus denselben Zahlen die PowerPoint ausgabe/praesentation.pptx.
+"""Stufe 3: Erstellt aus denselben Zahlen wie das Dashboard die PowerPoint ausgabe/praesentation.pptx.
 
 Starten im Terminal:  python praesentation.py
 
@@ -26,7 +26,7 @@ from pptx.oxml.ns import qn
 from pptx.oxml.xmlchemy import OxmlElement
 from pptx.util import Emu, Inches, Pt
 
-from bericht import Datenfehler, berechnen, laden, zahl
+from bericht import Datenfehler, berechnen, je_projekt, laden, monat_name, veraenderung, zahl
 
 ORDNER = Path(__file__).parent
 AUSGABE = ORDNER / "ausgabe" / "praesentation.pptx"
@@ -260,13 +260,17 @@ def tabelle(folie, kopf, zeilen, links, oben, breite, spaltenbreiten=None, recht
 
 
 def balkendiagramm(folie, kategorien, reihen, links, oben, breite, hoehe, beschriftete_reihe=None,
-                   zahlenformat='0" h"', legende=True):
-    """Waagerechtes Balkendiagramm (echtes PowerPoint-Diagramm). reihen = [(Name, Werte, Farbe), ...]."""
+                   zahlenformat='0" h"', legende=True, senkrecht=False):
+    """Balkendiagramm (echtes PowerPoint-Diagramm). reihen = [(Name, Werte, Farbe), ...].
+
+    Waagerecht für Listen wie Projekte, mit senkrecht=True als Säulen, z. B. für Monate.
+    """
     daten = CategoryChartData()
     daten.categories = kategorien
     for name, werte, _ in reihen:
         daten.add_series(name, [float(w) for w in werte])
-    diagramm = folie.shapes.add_chart(XL_CHART_TYPE.BAR_CLUSTERED, Inches(links), Inches(oben),
+    art = XL_CHART_TYPE.COLUMN_CLUSTERED if senkrecht else XL_CHART_TYPE.BAR_CLUSTERED
+    diagramm = folie.shapes.add_chart(art, Inches(links), Inches(oben),
                                       Inches(breite), Inches(hoehe), daten).chart
     diagramm.has_title = False
     diagramm.font.size = Pt(11)
@@ -286,11 +290,13 @@ def balkendiagramm(folie, kategorien, reihen, links, oben, breite, hoehe, beschr
         etiketten.font.size, etiketten.font.color.rgb = Pt(10), TEXT
         etiketten.show_value = True
     kategorie_achse = diagramm.category_axis
-    kategorie_achse.reverse_order = True  # erste Kategorie oben
+    kategorie_achse.reverse_order = not senkrecht  # Balken: erste Kategorie oben
     kategorie_achse.tick_label_position = XL_TICK_LABEL_POSITION.LOW
     kategorie_achse.format.line.color.rgb = GRAU
     kategorie_achse.has_major_gridlines = False
     wert_achse = diagramm.value_axis
+    if all(float(w) >= 0 for _, werte, _ in reihen for w in werte):
+        wert_achse.minimum_scale = 0  # Balken immer ab 0, sonst wirken Unterschiede größer als sie sind
     wert_achse.visible = False
     wert_achse.has_major_gridlines = False
     diagramm.has_legend = legende and len(reihen) > 1
@@ -327,9 +333,9 @@ def notizen(folie, text):
 def folie_titel(rahmen, df, k):
     folie = rahmen.titelfolie(
         "Projektstatus",
-        f"Datenstand {k['datenstand']} · {k['anzahl_projekte']} Projekte",
+        f"{k['zeitraum']} · {k['anzahl_projekte']} Projekte",
     )
-    notizen(folie, "Automatisch erstellt aus daten/projekte.xlsx. Alle Zahlen stammen aus derselben "
+    notizen(folie, "Automatisch erstellt aus allen Monatsdateien im Ordner daten/. Alle Zahlen stammen aus derselben "
                    "Berechnung wie das Dashboard. Die Folie „Einordnung und nächste Schritte“ ergänzt ihr selbst.")
 
 
@@ -363,7 +369,7 @@ def folie_ueberblick(rahmen, df, k, quelle):
 
     # Rechts: weitere Kennzahlen als Liste mit Trennlinien
     zeilen = [
-        (zahl(k["anzahl_projekte"]), "Projekte", "im aktuellen Datenstand"),
+        (zahl(k["anzahl_projekte"]), "Projekte", k["zeitraum"]),
         (f"{zahl(k['plan_stunden'])} h", "Plan-Stunden", "Summe der geplanten Stunden"),
         (f"{zahl(k['ist_stunden'])} h", "Ist-Stunden", "Summe der gebuchten Stunden"),
         (f"{zahl(k['abweichung'], vorzeichen=True)} h", "Abweichung",
@@ -379,12 +385,49 @@ def folie_ueberblick(rahmen, df, k, quelle):
         textfeld(folie, x + 3.2, y + 0.58, 4.2, 0.5, erklaerung, groesse=12, farbe=LEISE)
     notizen(folie, "Ausschöpfung = Ist-Stunden geteilt durch Plan-Stunden. Unter 100 % wurde weniger "
                    "Aufwand gebucht als geplant. Das ist nicht automatisch gut: Projekte, die noch nicht "
-                   "gestartet sind, senken den Wert ebenfalls (siehe Folie „Abweichung je Projekt“).")
+                   "gestartet sind, senken den Wert ebenfalls (siehe Folie „Plan und Ist je Projekt“).")
+
+
+def folie_entwicklung(rahmen, df, k, quelle):
+    """Plan und Ist je Monat: zeigt, wie sich der Aufwand mit jeder Monatsdatei entwickelt."""
+    monate = sorted(df["Monat"].unique())
+    werte = [berechnen(df[df["Monat"] == m]) for m in monate]
+    titel = f"Im {monat_name(monate[-1])} wurden {zahl(werte[-1]['ist_stunden'])} Stunden gebucht"
+    if len(monate) > 1:
+        differenz = veraenderung(werte[-1], werte[-2])["ist_stunden"]
+        if differenz:
+            titel += (f", {zahl(abs(differenz))} {'mehr' if differenz > 0 else 'weniger'} "
+                      f"als im {monat_name(monate[-2]).split(' ')[0]}")
+    folie = rahmen.inhaltsfolie(titel, "Entwicklung je Monat", quelle)
+
+    namen = [monat_name(m) for m in monate]
+    diagramm = balkendiagramm(
+        folie, namen, [("Plan", [w["plan_stunden"] for w in werte], GRAU),
+                       ("Ist", [w["ist_stunden"] for w in werte], BLAU)],
+        RAND, OBEN - 0.05, 6.6, UNTEN - OBEN + 0.15, beschriftete_reihe=1, senkrecht=True,
+    )
+    punkte_einfaerben(diagramm, 1, [ROT if w["ist_stunden"] > w["plan_stunden"] else BLAU for w in werte])
+
+    zeilen = []
+    for i, (name, w) in enumerate(zip(namen, werte)):
+        vorher = zahl(veraenderung(w, werte[i - 1])["ist_stunden"], vorzeichen=True) if i else "–"
+        zeilen.append((name, zahl(w["plan_stunden"]), zahl(w["ist_stunden"]), vorher))
+    tabelle(folie, ["Monat", "Plan h", "Ist h", "Ist ggü. Vormonat h"], zeilen, RAND + 7.0, OBEN + 0.35,
+            BREITE - 7.0, spaltenbreiten=[2.2, 1, 1, 1.8], rechtsbuendig={1, 2, 3})
+    unter_tabelle = OBEN + 0.35 + 0.36 * (len(zeilen) + 1) + 0.5
+    linie(folie, RAND + 7.0, unter_tabelle, BREITE - 7.0, farbe=TUERKIS, staerke=1.5)
+    beschriftung(folie, RAND + 7.0, unter_tabelle + 0.15, BREITE - 7.0, 0.3, "So lesen")
+    textfeld(folie, RAND + 7.0, unter_tabelle + 0.55, BREITE - 7.0, 1.2,
+             "Jede Säule ist eine Monatsdatei aus dem Ordner daten/. Kommt eine neue Datei dazu, "
+             "erscheint automatisch ein weiterer Monat.\nRot: In diesem Monat wurde mehr gebucht als geplant.",
+             groesse=12)
+    notizen(folie, "Plan und Ist sind die Stunden des jeweiligen Monats, nicht aufsummiert. "
+                   "Die Veränderung vergleicht die Ist-Stunden mit dem Monat davor.")
 
 
 def folie_plan_ist(rahmen, df, k, quelle):
-    sortiert = df.sort_values("Plan_Stunden", ascending=False)
-    folie = rahmen.inhaltsfolie("Plan und Ist je Projekt im Vergleich", "Plan und Ist", quelle)
+    sortiert = je_projekt(df).sort_values("Plan_Stunden", ascending=False)
+    folie = rahmen.inhaltsfolie("Plan und Ist je Projekt im Vergleich", f"Plan und Ist · {k['zeitraum']}", quelle)
     diagramm = balkendiagramm(
         folie, list(sortiert["Projekt"]),
         [("Plan", sortiert["Plan_Stunden"], GRAU), ("Ist", sortiert["Ist_Stunden"], BLAU)],
@@ -396,29 +439,11 @@ def folie_plan_ist(rahmen, df, k, quelle):
         "Grau: geplante Stunden.",
         "Blau: gebuchte Stunden, mit Wert am Balkenende.",
         "Rot: gebucht ist mehr als geplant.",
-        "Sortiert nach geplantem Aufwand, größte Projekte oben.",
+        "Stunden je Projekt über alle Monate addiert, größte Projekte oben.",
     ])
     notizen(folie, "Echtes PowerPoint-Diagramm: Rechtsklick → Daten bearbeiten zeigt die Werte. "
-                   "Rote Balken markieren Projekte, bei denen Ist größer als Plan ist.")
-
-
-def folie_abweichung(rahmen, df, k, quelle):
-    abw = (df["Ist_Stunden"] - df["Plan_Stunden"])
-    sortiert = df.assign(Abweichung=abw).sort_values("Abweichung", ascending=False)
-    folie = rahmen.inhaltsfolie("Abweichung vom Plan je Projekt", "Ist minus Plan", quelle)
-    diagramm = balkendiagramm(
-        folie, list(sortiert["Projekt"]), [("Abweichung", sortiert["Abweichung"], BLAU)],
-        RAND, OBEN - 0.05, SEITE_X - RAND - 0.35, UNTEN - OBEN + 0.15,
-        beschriftete_reihe=0, zahlenformat='+0" h";-0" h";0" h"',
-    )
-    punkte_einfaerben(diagramm, 0, [ROT if w > 0 else (BLAU if w < 0 else GRAU) for w in sortiert["Abweichung"]])
-    erklaerspalte(folie, "So lesen", [
-        "Rechts der Mittellinie (rot): mehr gebucht als geplant.",
-        "Links (blau): weniger gebucht als geplant.",
-        "Achtung: Projekte ohne gebuchte Stunden erscheinen ganz links, weil sie noch nicht gestartet sind.",
-    ])
-    notizen(folie, "Abweichung = Ist-Stunden minus Plan-Stunden je Projekt. Eine große negative Abweichung "
-                   "kann eine Einsparung sein oder ein Projekt, das noch nicht begonnen hat. Status prüfen.")
+                   "Rote Balken markieren Projekte, bei denen Ist größer als Plan ist. Ein Projekt ohne "
+                   "gebuchte Stunden ist meist noch nicht gestartet: Status in der Tabelle prüfen.")
 
 
 def folie_bereiche(rahmen, df, k, quelle):
@@ -443,21 +468,22 @@ def folie_bereiche(rahmen, df, k, quelle):
 def folie_projekte(rahmen, df, k, quelle):
     """Alle Projekte als Tabelle. Bei vielen Projekten auf mehrere Folien verteilt."""
     zeilen = [(z["Projekt"], z["Bereich"], z["Status"], zahl(z["Plan_Stunden"]), zahl(z["Ist_Stunden"]),
-               zahl(z["Ist_Stunden"] - z["Plan_Stunden"], vorzeichen=True)) for _, z in df.iterrows()]
+               zahl(z["Ist_Stunden"] - z["Plan_Stunden"], vorzeichen=True)) for _, z in je_projekt(df).iterrows()]
     pro_folie = 11
     teile = [zeilen[i:i + pro_folie] for i in range(0, len(zeilen), pro_folie)]
     for nr, teil in enumerate(teile, start=1):
         zusatz = f" ({nr}/{len(teile)})" if len(teile) > 1 else ""
         folie = rahmen.inhaltsfolie(f"Alle Projekte im Detail{zusatz}", "Datengrundlage", quelle)
-        tabelle(folie, ["Projekt", "Bereich", "Status", "Plan h", "Ist h", "Abweichung h"], teil,
+        tabelle(folie, ["Projekt", "Bereich", "Status (zuletzt)", "Plan h", "Ist h", "Abweichung h"], teil,
                 RAND, OBEN, BREITE, spaltenbreiten=[3, 2, 2, 1.2, 1.2, 1.5], rechtsbuendig={3, 4, 5},
                 zeilenhoehe=0.38, schrift=13)
-        notizen(folie, "Vollständige Datengrundlage dieses Berichts. Werte sind Text in einer echten "
+        notizen(folie, "Alle Projekte, Stunden über alle Monate addiert, Status aus dem letzten Monat. Werte sind Text in einer echten "
                        "Tabelle und können für Ergänzungen bearbeitet werden. Die Quelldatei bleibt maßgeblich.")
 
 
 def folie_ueber_plan(rahmen, df, k, quelle):
-    ueber = df[df["Ist_Stunden"] > df["Plan_Stunden"]]
+    projekte = je_projekt(df)  # jedes Projekt über alle Monate zusammengefasst
+    ueber = projekte[projekte["Ist_Stunden"] > projekte["Plan_Stunden"]]
     ueber = ueber.assign(Abweichung=ueber["Ist_Stunden"] - ueber["Plan_Stunden"]).sort_values("Abweichung", ascending=False)
     anzahl = k["projekte_ueber_plan"]
     folie = rahmen.inhaltsfolie(f"{anzahl} {'Projekt liegt' if anzahl == 1 else 'Projekte liegen'} über Plan",
@@ -471,11 +497,12 @@ def folie_ueber_plan(rahmen, df, k, quelle):
                 RAND, OBEN, SEITE_X - RAND - 0.45, spaltenbreiten=[3, 2, 1.2, 1.2, 1.5], rechtsbuendig={2, 3, 4},
                 zeilenhoehe=0.42, schrift=14)
     erklaerspalte(folie, "So lesen", [
-        "Projekte, bei denen mehr Stunden gebucht als geplant sind.",
+        f"Projekte, bei denen im Zeitraum {k['zeitraum']} mehr Stunden gebucht als geplant sind.",
         "Sortiert nach der größten Überschreitung.",
         "Ursachen gehören auf die Folie „Einordnung und nächste Schritte“.",
     ])
-    notizen(folie, "Kennzahl „Projekte über Plan“ aus bericht.py: Anzahl Projekte mit Ist-Stunden größer als Plan-Stunden.")
+    notizen(folie, "Kennzahl „Projekte über Plan“ aus bericht.py: Anzahl Projekte, deren Ist-Stunden über alle "
+                   "Monate zusammen größer sind als die Plan-Stunden.")
 
 
 def folie_aussage(rahmen, df, k, quelle):
@@ -505,8 +532,8 @@ def folie_methodik(rahmen, df, k, quelle):
     folie = rahmen.inhaltsfolie("Über diesen Bericht", "Datengrundlage und Definitionen", quelle)
     spalten = [
         ("Datenquelle", [
-            "Datei: daten/projekte.xlsx",
-            f"Datenstand: {k['datenstand']}",
+            f"Ordner: daten/ ({df['Monat'].nunique()} Monatsdateien)",
+            f"Zeitraum: {k['zeitraum']}",
             f"Projekte: {k['anzahl_projekte']}",
             f"Erstellt am: {datetime.now().strftime('%d.%m.%Y %H:%M')}",
             "Erzeugt mit: praesentation.py",
@@ -516,12 +543,14 @@ def folie_methodik(rahmen, df, k, quelle):
             "✓ Kein Projekt doppelt",
             "✓ Plan- und Ist-Stunden vollständig und nicht negativ",
             "✓ Nur erlaubte Statuswerte",
-            "✓ Einheitlicher Datenstand",
+            "✓ Jede Datei enthält genau einen Monat",
+            "✓ Kein Monat doppelt",
         ]),
         ("Definitionen", [
             "Abweichung = Ist-Stunden − Plan-Stunden",
             "Ausschöpfung = Ist-Stunden ÷ Plan-Stunden",
-            "Über Plan: Ist-Stunden größer als Plan-Stunden",
+            "Je Projekt: Stunden über alle Monate addiert",
+            "Status: Stand im letzten Monat",
         ]),
     ]
     breite = (BREITE - 2 * 0.5) / 3
@@ -531,25 +560,25 @@ def folie_methodik(rahmen, df, k, quelle):
         beschriftung(folie, x, OBEN + 0.15, breite, 0.3, titel)
         textfeld(folie, x, OBEN + 0.6, breite, 3.8, "\n".join(eintraege), groesse=13, farbe=TEXT)
     notizen(folie, "Hält fest, woher die Zahlen stammen und wie sie berechnet sind. Bei Rückfragen "
-                   "zuerst den Datenstand vergleichen.")
+                   "zuerst den Zeitraum vergleichen.")
 
 
 def main():
     try:
         df = laden()
     except Datenfehler as fehler:
-        print("FEHLER: Die Excel-Datei ist nicht in Ordnung. Es wurde keine Präsentation erstellt.")
+        print("FEHLER: Mindestens eine Excel-Datei ist nicht in Ordnung. Es wurde keine Präsentation erstellt.\n")
         print(fehler)
         sys.exit(1)
 
     k = berechnen(df)
     rahmen = Rahmen()
-    quelle = f"Quelle: daten/projekte.xlsx · Datenstand {k['datenstand']} · automatisch erstellt"
+    quelle = f"Quelle: {df['Monat'].nunique()} Monatsdateien in daten/ · {k['zeitraum']} · automatisch erstellt"
 
     folie_titel(rahmen, df, k)
     folie_ueberblick(rahmen, df, k, quelle)
+    folie_entwicklung(rahmen, df, k, quelle)
     folie_plan_ist(rahmen, df, k, quelle)
-    folie_abweichung(rahmen, df, k, quelle)
     folie_bereiche(rahmen, df, k, quelle)
     folie_projekte(rahmen, df, k, quelle)
     folie_ueber_plan(rahmen, df, k, quelle)
@@ -560,7 +589,7 @@ def main():
     rahmen.praes.save(AUSGABE)
     art = f"Vorlage {rahmen.vorlage.name}" if rahmen.vorlage else "neutrales Design"
     print(f"Praesentation erstellt: {AUSGABE.name} ({len(rahmen.praes.slides)} Folien, {art}, "
-          f"Datenstand {k['datenstand']})")
+          f"{k['zeitraum']})")
 
 
 if __name__ == "__main__":

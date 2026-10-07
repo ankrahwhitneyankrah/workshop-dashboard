@@ -1,11 +1,11 @@
-# Stufe 2: Bei jeder Änderung baut GitHub den Bericht automatisch.
+# Stufe 2: Bei jeder Änderung, z. B. einer neuen Monatsdatei in daten/, baut GitHub den Bericht automatisch neu.
 # Ergebnis: im Tab "Actions" den Lauf öffnen, unten unter "Artifacts" auf "bericht" klicken.
 
 name: Bericht erstellen
 
 on:
   push:
-    branches: [main]          # bei jeder Änderung auf main, z. B. neue Excel-Datei
+    branches: [main]          # bei jeder Änderung auf main, z. B. neue Monatsdatei
   pull_request:
     branches: [main]          # prüft Änderungsvorschläge, bevor sie übernommen werden
   workflow_dispatch:          # Knopf "Run workflow" zum Starten von Hand
@@ -35,7 +35,7 @@ jobs:
       - name: Rechenlogik prüfen (Tests)
         run: python -m pytest
 
-      - name: Dashboard erstellen (prüft auch die Excel-Datei)
+      - name: Dashboard erstellen (prüft vorher alle Monatsdateien)
         run: python dashboard.py
 
       # Stufe 3: Präsentation aus denselben Zahlen

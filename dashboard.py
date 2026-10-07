@@ -1,4 +1,4 @@
-"""Stufe 1: Erstellt aus daten/projekte.xlsx das Dashboard ausgabe/dashboard.html.
+"""Stufe 1: Erstellt aus allen Monatsdateien in daten/ das Dashboard ausgabe/dashboard.html.
 
 Starten im Terminal:  python dashboard.py
 Das Ergebnis ist eine einzige HTML-Datei mit Filtern. Sie funktioniert ohne
@@ -17,11 +17,13 @@ import webbrowser
 from datetime import datetime
 from pathlib import Path
 
-from bericht import ERLAUBTER_STATUS, Datenfehler, berechnen, laden, zahl
+from bericht import (DATEN_ORDNER, ERLAUBTER_STATUS, Datenfehler, berechnen, laden, monat_name,
+                     veraenderung, zahl)
 
 ORDNER = Path(__file__).parent
 VORLAGE = ORDNER / "dashboard_vorlage.html"
 AUSGABE = ORDNER / "ausgabe" / "dashboard.html"
+ALLE = "Alle"
 
 # Die Kacheln oben im Dashboard. Für eine neue Kennzahl: in bericht.py berechnen
 # und hier eine Zeile ergänzen. Formate: zahl, stunden, abweichung, prozent
@@ -37,21 +39,27 @@ KARTEN = [
 
 
 def kennzahlen_je_auswahl(df):
-    """Berechnet die Kennzahlen für jede Filterkombination aus Bereich und Status.
+    """Berechnet die Kennzahlen für jede Filterkombination aus Bereich und Monat.
 
+    Dazu für jeden einzelnen Monat die Veränderung zum Vormonat.
     So rechnet das Dashboard beim Filtern nichts selbst, sondern zeigt immer
     Werte aus bericht.py an.
     """
-    ergebnis = {}
-    for bereich in ["Alle", *sorted(df["Bereich"].unique())]:
-        for status in ["Alle", *ERLAUBTER_STATUS]:
-            auswahl = df
-            if bereich != "Alle":
-                auswahl = auswahl[auswahl["Bereich"] == bereich]
-            if status != "Alle":
-                auswahl = auswahl[auswahl["Status"] == status]
-            ergebnis[f"{bereich}|{status}"] = None if auswahl.empty else berechnen(auswahl)
-    return ergebnis
+    monate = sorted(df["Monat"].unique())
+    kennzahlen, vergleich = {}, {}
+    for bereich in [ALLE, *sorted(df["Bereich"].unique())]:
+        teil = df if bereich == ALLE else df[df["Bereich"] == bereich]
+        kennzahlen[f"{bereich}|{ALLE}"] = berechnen(teil) if len(teil) else None
+        for i, monat in enumerate(monate):
+            auswahl = teil[teil["Monat"] == monat]
+            kennzahlen[f"{bereich}|{monat}"] = berechnen(auswahl) if len(auswahl) else None
+            vormonat = kennzahlen.get(f"{bereich}|{monate[i - 1]}") if i else None
+            if kennzahlen[f"{bereich}|{monat}"] and vormonat:
+                vergleich[f"{bereich}|{monat}"] = {
+                    "vormonat": monat_name(monate[i - 1]),
+                    "werte": veraenderung(kennzahlen[f"{bereich}|{monat}"], vormonat),
+                }
+    return kennzahlen, vergleich
 
 
 def json_wert(wert):
@@ -61,9 +69,11 @@ def json_wert(wert):
     raise TypeError(f"Nicht in JSON umwandelbar: {wert!r}")
 
 
-def dashboard_daten(df, k):
+def dashboard_daten(df, k, dateien):
+    kennzahlen, vergleich = kennzahlen_je_auswahl(df)
     zeilen = [
         {
+            "Monat": str(z["Monat"]),
             "Projekt": str(z["Projekt"]),
             "Bereich": str(z["Bereich"]),
             "Status": str(z["Status"]),
@@ -73,16 +83,18 @@ def dashboard_daten(df, k):
         for _, z in df.iterrows()
     ]
     return {
-        "datenstand": k["datenstand"],
+        "zeitraum": k["zeitraum"],
         "erstellt": datetime.now().strftime("%d.%m.%Y %H:%M"),
-        "quelle": "daten/projekte.xlsx",
+        "dateien": dateien,
+        "monate": [{"schluessel": m, "name": monat_name(m)} for m in sorted(df["Monat"].unique())],
         "bereiche": sorted(df["Bereich"].unique().tolist()),
         "status": ERLAUBTER_STATUS,
         "zeilen": zeilen,
         "karten": [
             {"schluessel": s, "titel": t, "erklaerung": e, "format": f} for s, t, e, f in KARTEN
         ],
-        "kennzahlen": kennzahlen_je_auswahl(df),
+        "kennzahlen": kennzahlen,
+        "vergleich": vergleich,
     }
 
 
@@ -90,19 +102,20 @@ def main():
     try:
         df = laden()
     except Datenfehler as fehler:
-        print("FEHLER: Die Excel-Datei ist nicht in Ordnung. Es wurde kein Dashboard erstellt.")
+        print("FEHLER: Mindestens eine Excel-Datei ist nicht in Ordnung. Es wurde kein Dashboard erstellt.\n")
         print(fehler)
         sys.exit(1)
 
     k = berechnen(df)
-    daten = json.dumps(dashboard_daten(df, k), ensure_ascii=False, default=json_wert)
+    dateien = sorted(d.name for d in DATEN_ORDNER.glob("*.xlsx") if not d.name.startswith("~$"))
+    daten = json.dumps(dashboard_daten(df, k, dateien), ensure_ascii=False, default=json_wert)
     daten = daten.replace("</", "<\\/")  # damit Projektnamen das HTML nicht stören können
     html = VORLAGE.read_text(encoding="utf-8").replace("__DATEN__", daten)
 
     AUSGABE.parent.mkdir(exist_ok=True)
     AUSGABE.write_text(html, encoding="utf-8")
 
-    print(f"Dashboard erstellt: {AUSGABE.name} (Datenstand {k['datenstand']})")
+    print(f"Dashboard erstellt: {AUSGABE.name} ({k['zeitraum']}, {len(dateien)} Monatsdateien)")
     print(f"  Projekte: {zahl(k['anzahl_projekte'])} | Plan: {zahl(k['plan_stunden'])} h | "
           f"Ist: {zahl(k['ist_stunden'])} h | Abweichung: {zahl(k['abweichung'], vorzeichen=True)} h")
 
