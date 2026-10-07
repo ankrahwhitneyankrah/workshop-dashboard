@@ -586,7 +586,11 @@ def main():
     folie_methodik(rahmen, df, k, quelle)
 
     AUSGABE.parent.mkdir(exist_ok=True)
-    rahmen.praes.save(AUSGABE)
+    try:
+        rahmen.praes.save(AUSGABE)
+    except PermissionError:
+        print(f"FEHLER: {AUSGABE.name} ist gerade in PowerPoint geöffnet. Bitte schließen und erneut starten.")
+        sys.exit(1)
     art = f"Vorlage {rahmen.vorlage.name}" if rahmen.vorlage else "neutrales Design"
     print(f"Praesentation erstellt: {AUSGABE.name} ({len(rahmen.praes.slides)} Folien, {art}, "
           f"{k['zeitraum']})")

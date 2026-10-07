@@ -6,3 +6,9 @@ __pycache__/
 
 # Eigene Firmenvorlage fuer die PowerPoint: nur lokal, wird nie hochgeladen
 vorlage/
+
+# Pfad zum eigenen Teams-Ordner fuer "Bericht teilen": nur lokal
+teilen_ordner.txt
+
+# Geheime Teams-Webhook-Adresse: nur lokal, nie hochladen
+teams_webhook.txt

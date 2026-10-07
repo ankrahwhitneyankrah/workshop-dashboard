@@ -20,6 +20,7 @@ daten/2026-09.xlsx ┘                                                    └─
 | `dashboard.py` | Baut daraus das Dashboard und legt fest, welche Kennzahlen als Kacheln erscheinen (`KARTEN`). |
 | `dashboard_vorlage.html` | Aussehen und Bedienung des Dashboards: Filter, Monatsverlauf, Diagramme, Tabelle. Funktioniert ohne Internet. |
 | `praesentation.py` | Baut aus denselben Zahlen die PowerPoint: Überblick, Entwicklung je Monat, Projekte, Platz für eure Einordnung. Alles bleibt bearbeitbar. |
+| `teilen.py` | Stufe 4: legt Dashboard und PowerPoint in einen Teams-Ordner und schreibt die Teams-Nachricht. Anleitung: `ANLEITUNG_TEAMS.md`. |
 | `vorlage/` | Optional, nur auf eurem Rechner: eure Firmenvorlage als `.pptx`. Wird nie hochgeladen. |
 | `test_bericht.py` | Automatische Kontrolle: Rechnet das Programm richtig? Erkennt es fehlerhafte Daten? |
 | `.github/workflows/bericht.yml` | Das „Rezept“ für GitHub: Bei jeder Änderung wird alles automatisch geprüft und neu gebaut. |
@@ -53,7 +54,7 @@ daten/2026-09.xlsx ┘                                                    └─
    `git config --global user.email "12345678+name@users.noreply.github.com"`
 3. `Strg + Shift + P` → `Python: Select Interpreter` → das normale Python wählen (z. B. `Python 3.13`, **nicht** eine `.venv` aus einem anderen Projekt).
 4. **Terminal → Aufgabe ausführen → „Pakete installieren (einmalig)“**.
-5. **Terminal → Aufgabe ausführen → „2 · Alles prüfen (Tests)“**. Erwartung: alles grün, `11 passed`.
+5. **Terminal → Aufgabe ausführen → „2 · Alles prüfen (Tests)“**. Erwartung: alles grün, `12 passed`.
 
 ## Stufe 1: Ein Dashboard bauen
 
@@ -97,6 +98,14 @@ Im Ordner `daten/` liegen schon zwei Monate: Juli und August.
 3. In `.github/workflows/bericht.yml` den Schritt „Präsentation erstellen“ einkommentieren (oder Copilot darum bitten).
 4. Committen und synchronisieren. GitHub liefert jetzt Dashboard **und** PowerPoint.
 5. Zahlen auf den Folien mit dem Dashboard vergleichen. Die Aussage auf der Folie „Einordnung und nächste Schritte“ formuliert ihr selbst.
+
+## Stufe 4: In Teams teilen, mit automatischer Nachricht
+
+1. Einen Teams-Kanal mit OneDrive verbinden und den Pfad in `teilen_ordner.txt` eintragen.
+2. **Terminal → Aufgabe ausführen → „4 · Bericht teilen (Teams-Ordner)“**. Dashboard und PowerPoint liegen danach im Kanal. Das Dashboard öffnet sich direkt in Teams.
+3. Einen Workflow einrichten, der jede neue Meldung als Nachricht mit **@alle** postet. Den Text schreibt `teilen.py` passend zu den Zahlen, z. B. mit ⚠️, wenn Projekte über Plan liegen.
+
+Schritt für Schritt: [ANLEITUNG_TEAMS.md](ANLEITUNG_TEAMS.md). Dieser Weg bleibt komplett im Unternehmen und ist deshalb auch der Weg für eure echten Daten.
 
 ## Auf eigene Daten übertragen
 

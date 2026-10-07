@@ -23,8 +23,8 @@ Jeden Monat kommt eine neue Excel-Datei in den Ordner `daten/`. GitHub prüft si
 
 | Geprüft am 07.10.2026, lokal unter Windows mit Python 3.13 | Ergebnis |
 |---|---|
-| Tests Startstand | 11 bestanden |
-| Musterlösung (Zweig `loesung`) | 12 bestanden. Über Plan: Start = 2, nach September = 3. Folie mit Tabelle erzeugt |
+| Tests Startstand | 12 bestanden |
+| Musterlösung (Zweig `loesung`) | 13 bestanden. Über Plan: Start = 2, nach September = 3. Folie mit Tabelle erzeugt |
 | Dashboard Start und nach September (simulierter Browser) | Kacheln, Monatsfilter, Veränderung zum Vormonat, Klick auf Säule und Bereich, Zurücksetzen, Suche, Sortierung, Tooltip, CSV: alle bestanden |
 | Fehlerhafte Datei | Abbruch mit Code 1, Meldung nennt Datei und beide Fehler, kein neuer Bericht |
 | PowerPoint mit Mastervorlage | In PowerPoint geöffnet und als Bild exportiert, 8 Folien, Diagramme bearbeitbar |
@@ -54,13 +54,13 @@ Jeden Monat kommt eine neue Excel-Datei in den Ordner `daten/`. GitHub prüft si
 
 | Zeit | Block | Moderation | Teilnehmende |
 |---|---|---|---|
-| 09:00 | Ziel | Im eigenen Repository einen neuen Monat hochladen und zeigen, wie das Dashboard um eine Säule wächst | zusehen |
-| 09:15 | **Stufe 1** | VS Code-Oberfläche zeigen, gute vs. schwache Copilot-Anfrage | README Stufe 1, Schritte 1–6 |
-| 10:05 | Pause | | |
-| 10:20 | **Stufe 2** | Workflow-Datei kurz erklären (Copilot fragen: „Erkläre mir bericht.yml“) | README Stufe 2, Schritte 1–5 |
-| 11:15 | **Stufe 3** | Prompt-Dateien und Projektregeln zeigen | README Stufe 3, Schritte 1–5 |
-| 12:05 | Transfer | Checkliste zeigen, durch den Raum gehen. Bezug: eigene Fälle mit regelmäßigen Exporten, z. B. monatliche Nutzungszahlen oder Umfrageergebnisse | Eigene Kennzahl oder eigene Spalten |
-| 12:45 | Abschluss | Ausblick: Jira, SharePoint/Power Automate, Power BI, Teams, Coding Agent | Nächsten Einsatz notieren |
+| 13:00 | Ziel | Im eigenen Repository einen neuen Monat hochladen und zeigen, wie das Dashboard um eine Säule wächst | zusehen |
+| 13:15 | **Stufe 1** | VS Code-Oberfläche zeigen, gute vs. schwache Copilot-Anfrage | README Stufe 1, Schritte 1–6 |
+| 14:05 | Pause | | |
+| 14:20 | **Stufe 2** | Workflow-Datei kurz erklären (Copilot fragen: „Erkläre mir bericht.yml“) | README Stufe 2, Schritte 1–5 |
+| 15:15 | **Stufe 3** | Prompt-Dateien und Projektregeln zeigen | README Stufe 3, Schritte 1–5 |
+| 16:05 | Transfer | Checkliste zeigen, durch den Raum gehen. Bezug: eigene Fälle mit regelmäßigen Exporten, z. B. monatliche Nutzungszahlen oder Umfrageergebnisse | Eigene Kennzahl oder eigene Spalten |
+| 16:45 | Abschluss | Ausblick: Jira, SharePoint/Power Automate, Power BI, Teams, Coding Agent | Nächsten Einsatz notieren |
 
 ## Wenn etwas schiefgeht
 

@@ -7,7 +7,7 @@ und vergleicht. Starten im Terminal:  python -m pytest
 import pandas as pd
 import pytest
 
-from bericht import Datenfehler, berechnen, je_projekt, laden, pruefen, veraenderung
+from bericht import Datenfehler, berechnen, je_projekt, laden, pruefen, ueber_plan, veraenderung
 
 
 def eine_datei():
@@ -62,6 +62,13 @@ def test_je_projekt_addiert_die_monate():
     assert p.loc["A", "Ist_Stunden"] == 30
     assert p.loc["A", "Status"] == "abgeschlossen"  # Status aus dem letzten Monat
     assert p.loc["A", "Monate"] == 2
+
+
+def test_ueber_plan_je_projekt():
+    # A: 20 h geplant, 30 h gebucht -> über Plan. B und C nicht.
+    u = ueber_plan(beispiel())
+    assert list(u["Projekt"]) == ["A"]
+    assert u.loc[0, "Abweichung"] == 10
 
 
 def test_veraenderung_zum_vormonat():

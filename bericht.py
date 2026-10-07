@@ -121,6 +121,14 @@ def je_projekt(df):
               .reset_index())
 
 
+def ueber_plan(df):
+    """Projekte, deren Ist über alle Monate zusammen größer ist als der Plan, größte Überschreitung zuerst."""
+    p = je_projekt(df)
+    p = p[p["Ist_Stunden"] > p["Plan_Stunden"]]
+    return (p.assign(Abweichung=p["Ist_Stunden"] - p["Plan_Stunden"])
+             .sort_values(["Abweichung", "Projekt"], ascending=[False, True], ignore_index=True))
+
+
 def veraenderung(jetzt, vorher):
     """Unterschied zweier Ergebnisse von berechnen(), z. B. September gegenüber August."""
     return {
