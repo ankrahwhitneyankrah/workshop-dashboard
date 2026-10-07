@@ -6,19 +6,36 @@
       "type": "shell",
       "command": "python dashboard.py",
       "problemMatcher": [],
-      "group": { "kind": "build", "isDefault": true }
+      "group": {
+        "kind": "build",
+        "isDefault": true
+      }
     },
     {
       "label": "2 · Alles prüfen (Tests)",
       "type": "shell",
       "command": "python -m pytest -v",
       "problemMatcher": [],
-      "group": { "kind": "test", "isDefault": true }
+      "group": {
+        "kind": "test",
+        "isDefault": true
+      }
     },
     {
       "label": "3 · Präsentation erstellen",
       "type": "shell",
       "command": "python praesentation.py",
+      "problemMatcher": []
+    },
+    {
+      "label": "4 · Bericht teilen (Teams-Ordner)",
+      "type": "shell",
+      "command": "python teilen.py",
+      "dependsOn": [
+        "1 · Dashboard erstellen",
+        "3 · Präsentation erstellen"
+      ],
+      "dependsOrder": "sequence",
       "problemMatcher": []
     },
     {
